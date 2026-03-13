@@ -1,22 +1,12 @@
-<html>
-
-<head>
-<title>AquaCycle Guardian</title>
-</head>
-
-<body>
-
-<h1>Your Tanks</h1>
-
-<a href="/create-tank">Add Tank</a>
-
-<hr>
-
 {% for tank in tanks %}
 
 <div>
 
-<h2>{{ tank.name }}</h2>
+<h2>
+<a href="/tank/{{ tank.id }}">
+{{ tank.name }}
+</a>
+</h2>
 
 <p>Volume: {{ tank.volume }}L</p>
 
@@ -25,7 +15,3 @@
 <hr>
 
 {% endfor %}
-
-</body>
-
-</html>
