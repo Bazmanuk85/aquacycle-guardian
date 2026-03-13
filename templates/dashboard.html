@@ -1,28 +1,64 @@
 <html>
 
 <head>
+
 <title>AquaCycle Guardian</title>
+
+<style>
+
+body{
+background:#0f172a;
+color:white;
+font-family:Arial;
+padding:40px;
+}
+
+h1{
+color:#38bdf8;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+width:350px;
+}
+
+button{
+background:#38bdf8;
+border:none;
+padding:10px 15px;
+border-radius:6px;
+cursor:pointer;
+}
+
+a{
+color:#38bdf8;
+text-decoration:none;
+}
+
+</style>
+
 </head>
 
 <body>
 
 <h1>Welcome: {{ username }}</h1>
 
-<h2>Your Tanks</h2>
+<a href="/create-tank"><button>Add Tank</button></a>
 
-<a href="/create-tank">Add Tank</a>
-
-<hr>
+<br><br>
 
 {% for tank in tanks %}
 
-<div>
+<div class="card">
 
-<h3>
+<h2>
 <a href="/tank/{{ tank.id }}">
 {{ tank.name }}
 </a>
-</h3>
+</h2>
 
 <p>Volume: {{ tank.volume }}L</p>
 
@@ -31,8 +67,6 @@
 </a>
 
 </div>
-
-<hr>
 
 {% endfor %}
 
