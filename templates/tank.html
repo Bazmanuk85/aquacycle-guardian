@@ -9,26 +9,35 @@
 <style>
 
 body{
-background:#0f172a;
+background:#020617;
 color:white;
 font-family:Arial;
 padding:40px;
 }
 
+.grid{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+gap:20px;
+}
+
 .card{
-background:#1e293b;
+background:#0f172a;
 padding:20px;
 border-radius:12px;
-margin-bottom:20px;
-width:450px;
+box-shadow:0 0 10px rgba(0,0,0,0.5);
 }
 
 button{
 background:#38bdf8;
 border:none;
-padding:10px 15px;
+padding:10px 14px;
 border-radius:6px;
 cursor:pointer;
+}
+
+h1{
+color:#38bdf8;
 }
 
 </style>
@@ -39,7 +48,7 @@ cursor:pointer;
 
 <h1>{{ tank.name }}</h1>
 
-<p>Volume: {{ tank.volume }}L</p>
+<p>{{ tank.volume }}L Aquarium</p>
 
 <a href="/dashboard"><button>Back</button></a>
 
@@ -48,11 +57,13 @@ cursor:pointer;
 <a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
 <a href="/add-fish/{{ tank.id }}"><button>Add Fish</button></a>
 
-<hr>
+<br><br>
+
+<div class="grid">
 
 <div class="card">
 
-<h2>Cycle Progress</h2>
+<h2>Cycle Status</h2>
 
 {% if tests %}
 
@@ -69,6 +80,10 @@ cursor:pointer;
 
 {% endif %}
 
+{% else %}
+
+<p>No test data yet</p>
+
 {% endif %}
 
 </div>
@@ -77,13 +92,41 @@ cursor:pointer;
 
 <h2>Fish Stock</h2>
 
+{% set total = 0 %}
+
 {% for f in fish %}
 
 <p>{{ f.species }} : {{ f.count }}</p>
 
+{% set total = total + f.count %}
+
+{% endfor %}
+
+<hr>
+
+<p>Total Fish: {{ total }}</p>
+
+</div>
+
+<div class="card">
+
+<h2>Stocking Insight</h2>
+
+{% for f in fish %}
+
+{% if f.species == "South American Pufferfish" %}
+
+<p>South American Puffers prefer groups of 5+ and need strong filtration.</p>
+
+{% endif %}
+
 {% endfor %}
 
 </div>
+
+</div>
+
+<br>
 
 <h2>Nitrogen Cycle Graph</h2>
 
@@ -110,19 +153,19 @@ datasets: [
 {
 label: 'Ammonia',
 data: ammonia,
-borderColor: 'red'
+borderColor: '#ef4444'
 },
 
 {
 label: 'Nitrite',
 data: nitrite,
-borderColor: 'blue'
+borderColor: '#3b82f6'
 },
 
 {
 label: 'Nitrate',
 data: nitrate,
-borderColor: 'green'
+borderColor: '#22c55e'
 }
 
 ]
