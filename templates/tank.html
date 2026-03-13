@@ -82,7 +82,7 @@ color:#38bdf8;
 
 {% else %}
 
-<p>No test data yet</p>
+<p>No cycle data yet</p>
 
 {% endif %}
 
@@ -110,72 +110,20 @@ color:#38bdf8;
 
 <div class="card">
 
-<h2>Stocking Insight</h2>
+<h2>Tank Health</h2>
 
-{% for f in fish %}
+{% if tests %}
 
-{% if f.species == "South American Pufferfish" %}
+{% set latest = tests[-1] %}
 
-<p>South American Puffers prefer groups of 5+ and need strong filtration.</p>
+{% set score = 100 %}
 
+{% if latest.ammonia|float > 0 %}
+{% set score = score - 40 %}
 {% endif %}
 
-{% endfor %}
+{% if latest.nitrite|float > 0 %}
+{% set score = score - 30 %}
+{% endif %}
 
-</div>
-
-</div>
-
-<br>
-
-<h2>Nitrogen Cycle Graph</h2>
-
-<canvas id="cycleChart" width="700" height="350"></canvas>
-
-<script>
-
-const ammonia = {{ ammonia }};
-const nitrite = {{ nitrite }};
-const nitrate = {{ nitrate }};
-
-const labels = ammonia.map((_, i) => "Test " + (i + 1));
-
-new Chart(document.getElementById('cycleChart'), {
-
-type: 'line',
-
-data: {
-
-labels: labels,
-
-datasets: [
-
-{
-label: 'Ammonia',
-data: ammonia,
-borderColor: '#ef4444'
-},
-
-{
-label: 'Nitrite',
-data: nitrite,
-borderColor: '#3b82f6'
-},
-
-{
-label: 'Nitrate',
-data: nitrate,
-borderColor: '#22c55e'
-}
-
-]
-
-}
-
-});
-
-</script>
-
-</body>
-
-</html>
+{% if latest.nitr
