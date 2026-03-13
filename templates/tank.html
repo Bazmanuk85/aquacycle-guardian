@@ -20,6 +20,33 @@
 
 <hr>
 
+<h2>Cycle Status</h2>
+
+{% if tests %}
+
+{% set latest = tests[-1] %}
+
+{% if latest.ammonia|float > 0 and latest.nitrite|float == 0 %}
+<p><strong>Cycle Stage:</strong> Ammonia Spike</p>
+
+{% elif latest.nitrite|float > 0 %}
+<p><strong>Cycle Stage:</strong> Nitrite Spike</p>
+
+{% elif latest.ammonia|float == 0 and latest.nitrite|float == 0 and latest.nitrate|float > 0 %}
+<p><strong>Cycle Stage:</strong> Cycle Complete</p>
+
+{% else %}
+<p><strong>Cycle Stage:</strong> Unknown</p>
+{% endif %}
+
+{% else %}
+
+<p>No cycle data yet.</p>
+
+{% endif %}
+
+<hr>
+
 <h2>Water Test History</h2>
 
 {% if tests %}
