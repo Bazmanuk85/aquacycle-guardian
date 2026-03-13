@@ -40,6 +40,11 @@ h1{
 color:#38bdf8;
 }
 
+canvas{
+max-width:300px;
+margin:auto;
+}
+
 </style>
 
 </head>
@@ -54,76 +59,4 @@ color:#38bdf8;
 
 <br><br>
 
-<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
-<a href="/add-fish/{{ tank.id }}"><button>Add Fish</button></a>
-
-<br><br>
-
-<div class="grid">
-
-<div class="card">
-
-<h2>Cycle Status</h2>
-
-{% if tests %}
-
-{% set latest = tests[-1] %}
-
-{% if latest.ammonia|float > 0 %}
-<p>Stage: Ammonia Spike</p>
-
-{% elif latest.nitrite|float > 0 %}
-<p>Stage: Nitrite Spike</p>
-
-{% else %}
-<p>Stage: Stable / Cycled</p>
-
-{% endif %}
-
-{% else %}
-
-<p>No cycle data yet</p>
-
-{% endif %}
-
-</div>
-
-<div class="card">
-
-<h2>Fish Stock</h2>
-
-{% set total = 0 %}
-
-{% for f in fish %}
-
-<p>{{ f.species }} : {{ f.count }}</p>
-
-{% set total = total + f.count %}
-
-{% endfor %}
-
-<hr>
-
-<p>Total Fish: {{ total }}</p>
-
-</div>
-
-<div class="card">
-
-<h2>Tank Health</h2>
-
-{% if tests %}
-
-{% set latest = tests[-1] %}
-
-{% set score = 100 %}
-
-{% if latest.ammonia|float > 0 %}
-{% set score = score - 40 %}
-{% endif %}
-
-{% if latest.nitrite|float > 0 %}
-{% set score = score - 30 %}
-{% endif %}
-
-{% if latest.nitr
+<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></
