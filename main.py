@@ -37,7 +37,15 @@ def login(username: str = Form(...), password: str = Form(...)):
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
+
+    db = SessionLocal()
+
+    tanks = db.query(models.Tank).all()
+
     return templates.TemplateResponse(
         "dashboard.html",
-        {"request": request}
+        {
+            "request": request,
+            "tanks": tanks
+        }
     )
