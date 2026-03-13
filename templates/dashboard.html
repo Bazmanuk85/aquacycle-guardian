@@ -2,7 +2,7 @@
 
 <head>
 
-<title>AquaCycle Guardian</title>
+<title>AquaGuardian</title>
 
 <style>
 
@@ -11,6 +11,17 @@ background:#020617;
 color:white;
 font-family:Arial;
 padding:30px;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.title{
+font-size:28px;
+color:#38bdf8;
 }
 
 .card{
@@ -34,11 +45,17 @@ cursor:pointer;
 
 <body>
 
-<h1>Welcome {{ username }}</h1>
+<div class="header">
+
+<div class="title">AquaGuardian</div>
 
 <a href="/logout"><button>Logout</button></a>
 
-<br><br>
+</div>
+
+<br>
+
+<h2>Welcome {{ username }}</h2>
 
 <a href="/create-tank"><button>Add Tank</button></a>
 
