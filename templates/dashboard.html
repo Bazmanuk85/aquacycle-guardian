@@ -6,7 +6,9 @@
 
 <body>
 
-<h1>Your Tanks</h1>
+<h1>Welcome: {{ username }}</h1>
+
+<h2>Your Tanks</h2>
 
 <a href="/create-tank">Add Tank</a>
 
@@ -16,11 +18,11 @@
 
 <div>
 
-<h2>
+<h3>
 <a href="/tank/{{ tank.id }}">
 {{ tank.name }}
 </a>
-</h2>
+</h3>
 
 <p>Volume: {{ tank.volume }}L</p>
 
