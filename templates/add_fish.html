@@ -1,28 +1,77 @@
 <html>
 
 <head>
+
 <title>Add Fish</title>
+
+<style>
+
+body{
+background:#0f172a;
+color:white;
+font-family:Arial;
+padding:40px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+width:400px;
+}
+
+select,input{
+width:100%;
+padding:8px;
+margin-top:5px;
+margin-bottom:15px;
+}
+
+button{
+background:#38bdf8;
+border:none;
+padding:10px;
+border-radius:6px;
+cursor:pointer;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h1>Add Fish</h1>
+<div class="card">
+
+<h2>Add Fish</h2>
 
 <form action="/add-fish/{{ tank_id }}" method="post">
 
-Species<br>
-<input name="species">
+Species
 
-<br><br>
+<select name="species">
 
-Count<br>
-<input name="count">
+<option>Neon Tetra</option>
+<option>Corydoras</option>
+<option>Guppy</option>
+<option>Betta</option>
+<option>Angelfish</option>
+<option>Discus</option>
+<option>Otocinclus</option>
+<option>Cherry Shrimp</option>
+<option>South American Pufferfish</option>
 
-<br><br>
+</select>
+
+Count
+
+<input name="count" type="number">
 
 <button type="submit">Add Fish</button>
 
 </form>
+
+</div>
 
 </body>
 
