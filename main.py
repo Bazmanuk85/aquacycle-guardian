@@ -1,42 +1,75 @@
-@app.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_page(request: Request, tank_id: int):
+from fastapi import FastAPI, Request, Form
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, RedirectResponse
+
+from database import engine, SessionLocal
+import models
+
+# create tables
+models.Base.metadata.create_all(bind=engine)
+
+# create app
+app = FastAPI()
+
+templates = Jinja2Templates(directory="templates")
+
+
+# ---------- LOGIN ----------
+
+@app.get("/", response_class=HTMLResponse)
+def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.post("/login")
+def login(username: str = Form(...), password: str = Form(...)):
 
     db = SessionLocal()
 
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
+    user = db.query(models.User).filter(
+        models.User.username == username
     ).first()
 
-    tests = db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
+    if not user:
+        user = models.User(username=username, password=password)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    response = RedirectResponse("/dashboard", status_code=303)
+
+    response.set_cookie("user_id", str(user.id))
+    response.set_cookie("username", username)
+
+    return response
+
+
+# ---------- LOGOUT ----------
+
+@app.get("/logout")
+def logout():
+
+    response = RedirectResponse("/", status_code=303)
+
+    response.delete_cookie("user_id")
+    response.delete_cookie("username")
+
+    return response
+
+
+# ---------- DASHBOARD ----------
+
+@app.get("/dashboard", response_class=HTMLResponse)
+def dashboard(request: Request):
+
+    user_id = request.cookies.get("user_id")
+    username = request.cookies.get("username")
+
+    db = SessionLocal()
+
+    tanks = db.query(models.Tank).filter(
+        models.Tank.owner_id == user_id
     ).all()
 
-    ammonia = []
-    nitrite = []
-    nitrate = []
-    dates = []
-
-    for t in tests:
-
-        try:
-            ammonia.append(float(t.ammonia))
-            nitrite.append(float(t.nitrite))
-            nitrate.append(float(t.nitrate))
-
-            dates.append(t.created.strftime("%d %b"))
-
-        except:
-            pass
-
     return templates.TemplateResponse(
-        "tank.html",
-        {
-            "request": request,
-            "tank": tank,
-            "tests": tests,
-            "ammonia": ammonia,
-            "nitrite": nitrite,
-            "nitrate": nitrate,
-            "dates": dates
-        }
-    )
+        "
