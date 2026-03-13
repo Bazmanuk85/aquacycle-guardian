@@ -41,6 +41,19 @@ def login(username: str = Form(...), password: str = Form(...)):
     return response
 
 
+# ---------- LOGOUT ----------
+
+@app.get("/logout")
+def logout():
+
+    response = RedirectResponse("/", status_code=303)
+
+    response.delete_cookie("user_id")
+    response.delete_cookie("username")
+
+    return response
+
+
 # ---------- DASHBOARD ----------
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -69,7 +82,11 @@ def dashboard(request: Request):
 
 @app.get("/create-tank", response_class=HTMLResponse)
 def create_tank_page(request: Request):
-    return templates.TemplateResponse("create_tank.html", {"request": request})
+
+    return templates.TemplateResponse(
+        "create_tank.html",
+        {"request": request}
+    )
 
 
 @app.post("/create-tank")
@@ -124,10 +141,6 @@ def tank_page(request: Request, tank_id: int):
         models.WaterTest.tank_id == tank_id
     ).all()
 
-    fish = db.query(models.Fish).filter(
-        models.Fish.tank_id == tank_id
-    ).all()
-
     ammonia = []
     nitrite = []
     nitrate = []
@@ -146,9 +159,51 @@ def tank_page(request: Request, tank_id: int):
             "request": request,
             "tank": tank,
             "tests": tests,
-            "fish": fish,
             "ammonia": ammonia,
             "nitrite": nitrite,
             "nitrate": nitrate
         }
     )
+
+
+# ---------- ADD WATER TEST PAGE ----------
+
+@app.get("/add-test/{tank_id}", response_class=HTMLResponse)
+def add_test_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "add_test.html",
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
+    )
+
+
+# ---------- SAVE WATER TEST ----------
+
+@app.post("/add-test/{tank_id}")
+def add_test(
+    tank_id: int,
+    ammonia: str = Form(...),
+    nitrite: str = Form(...),
+    nitrate: str = Form(...),
+    ph: str = Form(...),
+    temperature: str = Form(...)
+):
+
+    db = SessionLocal()
+
+    new_test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=ammonia,
+        nitrite=nitrite,
+        nitrate=nitrate,
+        ph=ph,
+        temperature=temperature
+    )
+
+    db.add(new_test)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
