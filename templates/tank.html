@@ -2,7 +2,7 @@
 
 <head>
 
-<title>Tank Dashboard</title>
+<title>Tank</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -12,13 +12,13 @@ body{
 background:#020617;
 color:white;
 font-family:Arial;
-padding:20px;
+padding:30px;
 }
 
 .card{
 background:#0f172a;
 padding:20px;
-border-radius:12px;
+border-radius:10px;
 margin-bottom:20px;
 }
 
@@ -35,7 +35,7 @@ border-radius:6px;
 
 <body>
 
-<h2>{{ tank.name }}</h2>
+<h1>{{ tank.name }}</h1>
 
 <p>{{ tank.volume }}L Aquarium</p>
 
@@ -43,37 +43,9 @@ border-radius:6px;
 
 <br><br>
 
-<div class="card">
+<h2>Nitrogen Cycle</h2>
 
-<h3>Aquarium Intelligence</h3>
-
-{% if prediction %}
-
-<p>{{ prediction }}</p>
-
-{% else %}
-
-<p>No prediction yet</p>
-
-{% endif %}
-
-</div>
-
-<div class="card">
-
-<h3>Fish Stock</h3>
-
-{% for f in fish %}
-
-<p>{{ f.species }} : {{ f.count }}</p>
-
-{% endfor %}
-
-</div>
-
-<h3>Nitrogen Cycle</h3>
-
-<canvas id="cycleChart"></canvas>
+<canvas id="chart"></canvas>
 
 <script>
 
@@ -83,7 +55,7 @@ const nitrate = {{ nitrate }};
 
 const labels = ammonia.map((_,i)=>"Test "+(i+1));
 
-new Chart(document.getElementById('cycleChart'),{
+new Chart(document.getElementById('chart'),{
 
 type:'line',
 
