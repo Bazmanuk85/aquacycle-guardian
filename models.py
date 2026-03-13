@@ -36,3 +36,24 @@ class WaterTest(Base):
     nitrate = Column(String)
     ph = Column(String)
     temperature = Column(String)
+
+
+class Fish(Base):
+    __tablename__ = "fish"
+
+    id = Column(Integer, primary_key=True)
+
+    tank_id = Column(Integer, ForeignKey("tanks.id"))
+
+    species = Column(String)
+    count = Column(Integer)
+
+
+class WaterChange(Base):
+    __tablename__ = "water_changes"
+
+    id = Column(Integer, primary_key=True)
+
+    tank_id = Column(Integer, ForeignKey("tanks.id"))
+
+    percent = Column(Integer)
