@@ -1,0 +1,37 @@
+<html>
+
+<head>
+<title>Tank Dashboard</title>
+</head>
+
+<body>
+
+<h1>{{ tank.name }}</h1>
+
+<p>Volume: {{ tank.volume }}L</p>
+
+<a href="/dashboard">Back</a>
+
+<hr>
+
+<h2>Water Test History</h2>
+
+{% for test in tests %}
+
+<div>
+
+Ammonia: {{ test.ammonia }} ppm |
+Nitrite: {{ test.nitrite }} ppm |
+Nitrate: {{ test.nitrate }} ppm |
+pH: {{ test.ph }} |
+Temp: {{ test.temperature }}
+
+</div>
+
+<hr>
+
+{% endfor %}
+
+</body>
+
+</html>
