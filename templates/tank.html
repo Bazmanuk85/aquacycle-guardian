@@ -20,7 +20,7 @@ background:#1e293b;
 padding:20px;
 border-radius:12px;
 margin-bottom:20px;
-width:400px;
+width:450px;
 }
 
 button{
@@ -45,47 +45,45 @@ cursor:pointer;
 
 <br><br>
 
-<a href="/add-test/{{ tank.id }}">
-<button>Log Water Test</button>
-</a>
+<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
+<a href="/add-fish/{{ tank.id }}"><button>Add Fish</button></a>
 
 <hr>
 
 <div class="card">
 
-<h2>Tank Health</h2>
+<h2>Cycle Progress</h2>
 
 {% if tests %}
 
 {% set latest = tests[-1] %}
 
 {% if latest.ammonia|float > 0 %}
-<p>Cycle Stage: Ammonia Spike</p>
+<p>Stage: Ammonia Spike</p>
 
 {% elif latest.nitrite|float > 0 %}
-<p>Cycle Stage: Nitrite Spike</p>
-
-{% elif latest.ammonia|float == 0 and latest.nitrite|float == 0 %}
-<p>Cycle Stage: Stable / Cycled</p>
+<p>Stage: Nitrite Spike</p>
 
 {% else %}
-<p>Cycle Stage: Unknown</p>
+<p>Stage: Stable / Cycled</p>
 
 {% endif %}
-
-{% set score = 100 - (latest.ammonia|float * 20 + latest.nitrite|float * 20) %}
-
-<p>Tank Health Score: {{ score|round }}%</p>
-
-{% else %}
-
-<p>No test data yet</p>
 
 {% endif %}
 
 </div>
 
-<hr>
+<div class="card">
+
+<h2>Fish Stock</h2>
+
+{% for f in fish %}
+
+<p>{{ f.species }} : {{ f.count }}</p>
+
+{% endfor %}
+
+</div>
 
 <h2>Nitrogen Cycle Graph</h2>
 
@@ -134,24 +132,6 @@ borderColor: 'green'
 });
 
 </script>
-
-<hr>
-
-<h2>Water Test History</h2>
-
-{% for test in tests %}
-
-<div class="card">
-
-Ammonia: {{ test.ammonia }} ppm<br>
-Nitrite: {{ test.nitrite }} ppm<br>
-Nitrate: {{ test.nitrate }} ppm<br>
-pH: {{ test.ph }}<br>
-Temp: {{ test.temperature }}
-
-</div>
-
-{% endfor %}
 
 </body>
 
