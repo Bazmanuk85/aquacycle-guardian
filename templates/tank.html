@@ -1,9 +1,37 @@
 <html>
 
 <head>
+
 <title>Tank Dashboard</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+background:#0f172a;
+color:white;
+font-family:Arial;
+padding:40px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+width:400px;
+}
+
+button{
+background:#38bdf8;
+border:none;
+padding:10px 15px;
+border-radius:6px;
+cursor:pointer;
+}
+
+</style>
 
 </head>
 
@@ -13,7 +41,7 @@
 
 <p>Volume: {{ tank.volume }}L</p>
 
-<a href="/dashboard">Back</a>
+<a href="/dashboard"><button>Back</button></a>
 
 <br><br>
 
@@ -23,9 +51,45 @@
 
 <hr>
 
+<div class="card">
+
+<h2>Tank Health</h2>
+
+{% if tests %}
+
+{% set latest = tests[-1] %}
+
+{% if latest.ammonia|float > 0 %}
+<p>Cycle Stage: Ammonia Spike</p>
+
+{% elif latest.nitrite|float > 0 %}
+<p>Cycle Stage: Nitrite Spike</p>
+
+{% elif latest.ammonia|float == 0 and latest.nitrite|float == 0 %}
+<p>Cycle Stage: Stable / Cycled</p>
+
+{% else %}
+<p>Cycle Stage: Unknown</p>
+
+{% endif %}
+
+{% set score = 100 - (latest.ammonia|float * 20 + latest.nitrite|float * 20) %}
+
+<p>Tank Health Score: {{ score|round }}%</p>
+
+{% else %}
+
+<p>No test data yet</p>
+
+{% endif %}
+
+</div>
+
+<hr>
+
 <h2>Nitrogen Cycle Graph</h2>
 
-<canvas id="cycleChart" width="600" height="300"></canvas>
+<canvas id="cycleChart" width="700" height="350"></canvas>
 
 <script>
 
@@ -65,12 +129,6 @@ borderColor: 'green'
 
 ]
 
-},
-
-options: {
-
-responsive: false
-
 }
 
 });
@@ -83,17 +141,15 @@ responsive: false
 
 {% for test in tests %}
 
-<div>
+<div class="card">
 
-Ammonia: {{ test.ammonia }} |
-Nitrite: {{ test.nitrite }} |
-Nitrate: {{ test.nitrate }} |
-pH: {{ test.ph }} |
+Ammonia: {{ test.ammonia }} ppm<br>
+Nitrite: {{ test.nitrite }} ppm<br>
+Nitrate: {{ test.nitrate }} ppm<br>
+pH: {{ test.ph }}<br>
 Temp: {{ test.temperature }}
 
 </div>
-
-<hr>
 
 {% endfor %}
 
