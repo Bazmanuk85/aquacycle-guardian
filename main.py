@@ -12,7 +12,7 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 
-# ---------------- LOGIN ----------------
+# ---------- LOGIN ----------
 
 @app.get("/", response_class=HTMLResponse)
 def login_page(request: Request):
@@ -41,7 +41,7 @@ def login(username: str = Form(...), password: str = Form(...)):
     return response
 
 
-# ---------------- DASHBOARD ----------------
+# ---------- DASHBOARD ----------
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
@@ -65,7 +65,7 @@ def dashboard(request: Request):
     )
 
 
-# ---------------- CREATE TANK ----------------
+# ---------- CREATE TANK ----------
 
 @app.get("/create-tank", response_class=HTMLResponse)
 def create_tank_page(request: Request):
@@ -91,7 +91,25 @@ def create_tank(request: Request, name: str = Form(...), volume: int = Form(...)
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# ---------------- TANK PAGE ----------------
+# ---------- DELETE TANK ----------
+
+@app.get("/delete-tank/{tank_id}")
+def delete_tank(tank_id: int):
+
+    db = SessionLocal()
+
+    tank = db.query(models.Tank).filter(
+        models.Tank.id == tank_id
+    ).first()
+
+    if tank:
+        db.delete(tank)
+        db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+# ---------- TANK PAGE ----------
 
 @app.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_page(request: Request, tank_id: int):
@@ -104,4 +122,33 @@ def tank_page(request: Request, tank_id: int):
 
     tests = db.query(models.WaterTest).filter(
         models.WaterTest.tank_id == tank_id
-    ).all
+    ).all()
+
+    fish = db.query(models.Fish).filter(
+        models.Fish.tank_id == tank_id
+    ).all()
+
+    ammonia = []
+    nitrite = []
+    nitrate = []
+
+    for t in tests:
+        try:
+            ammonia.append(float(t.ammonia))
+            nitrite.append(float(t.nitrite))
+            nitrate.append(float(t.nitrate))
+        except:
+            pass
+
+    return templates.TemplateResponse(
+        "tank.html",
+        {
+            "request": request,
+            "tank": tank,
+            "tests": tests,
+            "fish": fish,
+            "ammonia": ammonia,
+            "nitrite": nitrite,
+            "nitrate": nitrate
+        }
+    )
