@@ -8,13 +8,21 @@
 
 <h1>{{ tank.name }}</h1>
 
-<p>Volume: {{ tank.volume }}L</p>
+<p><strong>Volume:</strong> {{ tank.volume }}L</p>
 
-<a href="/dashboard">Back</a>
+<a href="/dashboard">Back to Dashboard</a>
+
+<br><br>
+
+<a href="/add-test/{{ tank.id }}">
+<button>Log Water Test</button>
+</a>
 
 <hr>
 
 <h2>Water Test History</h2>
+
+{% if tests %}
 
 {% for test in tests %}
 
@@ -31,6 +39,12 @@ Temp: {{ test.temperature }}
 <hr>
 
 {% endfor %}
+
+{% else %}
+
+<p>No water tests recorded yet.</p>
+
+{% endif %}
 
 </body>
 
