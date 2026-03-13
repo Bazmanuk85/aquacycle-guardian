@@ -2,15 +2,18 @@
 
 <head>
 <title>Tank Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 
 <body>
 
 <h1>{{ tank.name }}</h1>
 
-<p><strong>Volume:</strong> {{ tank.volume }}L</p>
+<p>Volume: {{ tank.volume }}L</p>
 
-<a href="/dashboard">Back to Dashboard</a>
+<a href="/dashboard">Back</a>
 
 <br><br>
 
@@ -20,44 +23,71 @@
 
 <hr>
 
-<h2>Cycle Status</h2>
+<h2>Nitrogen Cycle Graph</h2>
 
-{% if tests %}
+<canvas id="cycleChart" width="600" height="300"></canvas>
 
-{% set latest = tests[-1] %}
+<script>
 
-{% if latest.ammonia|float > 0 and latest.nitrite|float == 0 %}
-<p><strong>Cycle Stage:</strong> Ammonia Spike</p>
+const ammonia = {{ ammonia }};
+const nitrite = {{ nitrite }};
+const nitrate = {{ nitrate }};
 
-{% elif latest.nitrite|float > 0 %}
-<p><strong>Cycle Stage:</strong> Nitrite Spike</p>
+const labels = ammonia.map((_, i) => "Test " + (i + 1));
 
-{% elif latest.ammonia|float == 0 and latest.nitrite|float == 0 and latest.nitrate|float > 0 %}
-<p><strong>Cycle Stage:</strong> Cycle Complete</p>
+new Chart(document.getElementById('cycleChart'), {
 
-{% else %}
-<p><strong>Cycle Stage:</strong> Unknown</p>
-{% endif %}
+type: 'line',
 
-{% else %}
+data: {
 
-<p>No cycle data yet.</p>
+labels: labels,
 
-{% endif %}
+datasets: [
+
+{
+label: 'Ammonia',
+data: ammonia,
+borderColor: 'red'
+},
+
+{
+label: 'Nitrite',
+data: nitrite,
+borderColor: 'blue'
+},
+
+{
+label: 'Nitrate',
+data: nitrate,
+borderColor: 'green'
+}
+
+]
+
+},
+
+options: {
+
+responsive: false
+
+}
+
+});
+
+</script>
 
 <hr>
 
 <h2>Water Test History</h2>
 
-{% if tests %}
-
 {% for test in tests %}
 
 <div>
 
-Ammonia: {{ test.ammonia }} ppm |
-Nitrite: {{ test.nitrite }} ppm |
-Nitrate: {{ test.nitrate }} ppm |
+Ammonia: {{ test.ammonia }} |
+Nitrite: {{ test.nitrite }} |
+Nitrate: {{ test.nitrate }} |
 pH: {{ test.ph }} |
 Temp: {{ test.temperature }}
 
@@ -66,12 +96,6 @@ Temp: {{ test.temperature }}
 <hr>
 
 {% endfor %}
-
-{% else %}
-
-<p>No water tests recorded yet.</p>
-
-{% endif %}
 
 </body>
 
