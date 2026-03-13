@@ -11,6 +11,7 @@ app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
+# ---------------- LOGIN ----------------
 
 @app.get("/", response_class=HTMLResponse)
 def login_page(request: Request):
@@ -26,23 +27,30 @@ def login(username: str = Form(...), password: str = Form(...)):
         models.User.username == username
     ).first()
 
-    if user:
-        return RedirectResponse("/dashboard", status_code=303)
+    if not user:
+        user = models.User(username=username, password=password)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
 
-    new_user = models.User(username=username, password=password)
+    response = RedirectResponse("/dashboard", status_code=303)
+    response.set_cookie("user_id", str(user.id))
 
-    db.add(new_user)
-    db.commit()
+    return response
 
-    return RedirectResponse("/dashboard", status_code=303)
 
+# ---------------- DASHBOARD ----------------
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
 
+    user_id = request.cookies.get("user_id")
+
     db = SessionLocal()
 
-    tanks = db.query(models.Tank).all()
+    tanks = db.query(models.Tank).filter(
+        models.Tank.owner_id == user_id
+    ).all()
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -53,20 +61,24 @@ def dashboard(request: Request):
     )
 
 
+# ---------------- CREATE TANK ----------------
+
 @app.get("/create-tank", response_class=HTMLResponse)
 def create_tank_page(request: Request):
     return templates.TemplateResponse("create_tank.html", {"request": request})
 
 
 @app.post("/create-tank")
-def create_tank(name: str = Form(...), volume: int = Form(...)):
+def create_tank(request: Request, name: str = Form(...), volume: int = Form(...)):
+
+    user_id = request.cookies.get("user_id")
 
     db = SessionLocal()
 
     new_tank = models.Tank(
         name=name,
         volume=volume,
-        owner_id=1
+        owner_id=user_id
     )
 
     db.add(new_tank)
@@ -74,6 +86,26 @@ def create_tank(name: str = Form(...), volume: int = Form(...)):
 
     return RedirectResponse("/dashboard", status_code=303)
 
+
+# ---------------- DELETE TANK ----------------
+
+@app.get("/delete-tank/{tank_id}")
+def delete_tank(tank_id: int):
+
+    db = SessionLocal()
+
+    tank = db.query(models.Tank).filter(
+        models.Tank.id == tank_id
+    ).first()
+
+    if tank:
+        db.delete(tank)
+        db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+# ---------------- TANK PAGE ----------------
 
 @app.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_page(request: Request, tank_id: int):
@@ -96,6 +128,10 @@ def tank_page(request: Request, tank_id: int):
             "tests": tests
         }
     )
+
+
+# ---------------- ADD WATER TEST ----------------
+
 @app.get("/add-test/{tank_id}", response_class=HTMLResponse)
 def add_test_page(request: Request, tank_id: int):
 
