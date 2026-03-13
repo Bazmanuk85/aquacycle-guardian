@@ -10,24 +10,14 @@ body{
 background:#020617;
 color:white;
 font-family:Arial;
-padding:20px;
-}
-
-.header{
-font-size:24px;
-margin-bottom:20px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-gap:20px;
+padding:30px;
 }
 
 .card{
 background:#0f172a;
 padding:20px;
-border-radius:12px;
+border-radius:10px;
+margin-bottom:20px;
 }
 
 button{
@@ -38,41 +28,42 @@ border-radius:6px;
 cursor:pointer;
 }
 
+a{
+color:white;
+text-decoration:none;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<div class="header">
-
-Welcome {{ username }}
-
-</div>
+<h1>Welcome {{ username }}</h1>
 
 <a href="/create-tank"><button>Add Tank</button></a>
 
 <br><br>
 
-<div class="grid">
-
 {% for tank in tanks %}
 
 <div class="card">
 
-<h3>{{ tank.name }}</h3>
+<h2>
+<a href="/tank/{{ tank.id }}">
+{{ tank.name }}
+</a>
+</h2>
 
 <p>{{ tank.volume }}L</p>
 
-<a href="/tank/{{ tank.id }}">
-<button>Open Tank</button>
+<a href="/delete-tank/{{ tank.id }}">
+<button>Delete Tank</button>
 </a>
 
 </div>
 
 {% endfor %}
-
-</div>
 
 </body>
 
