@@ -35,13 +35,15 @@ border-radius:6px;
 
 <body>
 
+<a href="/logout"><button>Logout</button></a>
+
 <h1>{{ tank.name }}</h1>
 
 <p>{{ tank.volume }}L Aquarium</p>
 
 <a href="/dashboard"><button>Back</button></a>
 
-<br><br>
+<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
 
 <h2>Nitrogen Cycle</h2>
 
