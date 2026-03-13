@@ -1,51 +1,31 @@
-<!DOCTYPE html>
 <html>
+
 <head>
 <title>AquaCycle Guardian</title>
-<style>
-body {
-font-family: Arial;
-background:#0f172a;
-color:white;
-text-align:center;
-padding:40px;
-}
-
-.card{
-background:#1e293b;
-padding:20px;
-margin:20px;
-border-radius:10px;
-display:inline-block;
-width:200px;
-}
-</style>
 </head>
 
 <body>
 
-<h1>AquaCycle Guardian</h1>
-<p>Aquarium nitrogen cycle monitor</p>
+<h1>Your Tanks</h1>
 
-<div class="card">
-<h2>Ammonia</h2>
-<p>-- ppm</p>
+<a href="/create-tank">Add Tank</a>
+
+<hr>
+
+{% for tank in tanks %}
+
+<div>
+
+<h2>{{ tank.name }}</h2>
+
+<p>Volume: {{ tank.volume }}L</p>
+
 </div>
 
-<div class="card">
-<h2>Nitrite</h2>
-<p>-- ppm</p>
-</div>
+<hr>
 
-<div class="card">
-<h2>Nitrate</h2>
-<p>-- ppm</p>
-</div>
-
-<div class="card">
-<h2>pH</h2>
-<p>--</p>
-</div>
+{% endfor %}
 
 </body>
+
 </html>
