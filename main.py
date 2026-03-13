@@ -11,6 +11,7 @@ app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
+
 # ---------------- LOGIN ----------------
 
 @app.get("/", response_class=HTMLResponse)
@@ -35,6 +36,7 @@ def login(username: str = Form(...), password: str = Form(...)):
 
     response = RedirectResponse("/dashboard", status_code=303)
     response.set_cookie("user_id", str(user.id))
+    response.set_cookie("username", username)
 
     return response
 
@@ -45,6 +47,7 @@ def login(username: str = Form(...), password: str = Form(...)):
 def dashboard(request: Request):
 
     user_id = request.cookies.get("user_id")
+    username = request.cookies.get("username")
 
     db = SessionLocal()
 
@@ -56,7 +59,8 @@ def dashboard(request: Request):
         "dashboard.html",
         {
             "request": request,
-            "tanks": tanks
+            "tanks": tanks,
+            "username": username
         }
     )
 
@@ -110,62 +114,4 @@ def delete_tank(tank_id: int):
 @app.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_page(request: Request, tank_id: int):
 
-    db = SessionLocal()
-
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
-
-    tests = db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
-    ).all()
-
-    return templates.TemplateResponse(
-        "tank.html",
-        {
-            "request": request,
-            "tank": tank,
-            "tests": tests
-        }
-    )
-
-
-# ---------------- ADD WATER TEST ----------------
-
-@app.get("/add-test/{tank_id}", response_class=HTMLResponse)
-def add_test_page(request: Request, tank_id: int):
-
-    return templates.TemplateResponse(
-        "add_test.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
-    )
-
-
-@app.post("/add-test/{tank_id}")
-def add_test(
-    tank_id: int,
-    ammonia: str = Form(...),
-    nitrite: str = Form(...),
-    nitrate: str = Form(...),
-    ph: str = Form(...),
-    temperature: str = Form(...)
-):
-
-    db = SessionLocal()
-
-    new_test = models.WaterTest(
-        tank_id=tank_id,
-        ammonia=ammonia,
-        nitrite=nitrite,
-        nitrate=nitrate,
-        ph=ph,
-        temperature=temperature
-    )
-
-    db.add(new_test)
-    db.commit()
-
-    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+    db =
