@@ -1,35 +1,72 @@
 <html>
 
 <head>
+
 <title>Log Water Test</title>
+
+<style>
+
+body{
+background:#020617;
+color:white;
+font-family:Arial;
+padding:30px;
+}
+
+.card{
+background:#0f172a;
+padding:20px;
+border-radius:10px;
+width:400px;
+}
+
+input{
+width:100%;
+padding:8px;
+margin-bottom:10px;
+}
+
+button{
+background:#38bdf8;
+border:none;
+padding:10px;
+border-radius:6px;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h1>Log Water Test</h1>
+<a href="/logout"><button>Logout</button></a>
+
+<div class="card">
+
+<h2>Log Water Test</h2>
 
 <form action="/add-test/{{ tank_id }}" method="post">
 
-<p>Ammonia</p>
+Ammonia
 <input name="ammonia">
 
-<p>Nitrite</p>
+Nitrite
 <input name="nitrite">
 
-<p>Nitrate</p>
+Nitrate
 <input name="nitrate">
 
-<p>pH</p>
+pH
 <input name="ph">
 
-<p>Temperature</p>
+Temperature
 <input name="temperature">
 
-<br><br>
-
-<button type="submit">Save Test</button>
+<button type="submit">Save</button>
 
 </form>
+
+</div>
 
 </body>
 
