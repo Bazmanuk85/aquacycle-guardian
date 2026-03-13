@@ -12,8 +12,6 @@ app = FastAPI()
 templates = Jinja2Templates(directory="templates")
 
 
-# ---------------- LOGIN ----------------
-
 @app.get("/", response_class=HTMLResponse)
 def login_page(request: Request):
     return templates.TemplateResponse("login.html", {"request": request})
@@ -41,8 +39,6 @@ def login(username: str = Form(...), password: str = Form(...)):
     return response
 
 
-# ---------------- DASHBOARD ----------------
-
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
 
@@ -64,8 +60,6 @@ def dashboard(request: Request):
         }
     )
 
-
-# ---------------- CREATE TANK ----------------
 
 @app.get("/create-tank", response_class=HTMLResponse)
 def create_tank_page(request: Request):
@@ -91,10 +85,8 @@ def create_tank(request: Request, name: str = Form(...), volume: int = Form(...)
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# ---------------- DELETE TANK ----------------
-
-@app.get("/delete-tank/{tank_id}")
-def delete_tank(tank_id: int):
+@app.get("/tank/{tank_id}", response_class=HTMLResponse)
+def tank_page(request: Request, tank_id: int):
 
     db = SessionLocal()
 
@@ -102,16 +94,83 @@ def delete_tank(tank_id: int):
         models.Tank.id == tank_id
     ).first()
 
-    if tank:
-        db.delete(tank)
-        db.commit()
+    tests = db.query(models.WaterTest).filter(
+        models.WaterTest.tank_id == tank_id
+    ).all()
 
-    return RedirectResponse("/dashboard", status_code=303)
+    fish = db.query(models.Fish).filter(
+        models.Fish.tank_id == tank_id
+    ).all()
+
+    ammonia = [float(t.ammonia) for t in tests]
+    nitrite = [float(t.nitrite) for t in tests]
+    nitrate = [float(t.nitrate) for t in tests]
+
+    return templates.TemplateResponse(
+        "tank.html",
+        {
+            "request": request,
+            "tank": tank,
+            "tests": tests,
+            "fish": fish,
+            "ammonia": ammonia,
+            "nitrite": nitrite,
+            "nitrate": nitrate
+        }
+    )
 
 
-# ---------------- TANK PAGE ----------------
+@app.get("/add-test/{tank_id}", response_class=HTMLResponse)
+def add_test_page(request: Request, tank_id: int):
 
-@app.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_page(request: Request, tank_id: int):
+    return templates.TemplateResponse(
+        "add_test.html",
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
+    )
 
-    db =
+
+@app.post("/add-test/{tank_id}")
+def add_test(
+    tank_id: int,
+    ammonia: str = Form(...),
+    nitrite: str = Form(...),
+    nitrate: str = Form(...),
+    ph: str = Form(...),
+    temperature: str = Form(...)
+):
+
+    db = SessionLocal()
+
+    new_test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=ammonia,
+        nitrite=nitrite,
+        nitrate=nitrate,
+        ph=ph,
+        temperature=temperature
+    )
+
+    db.add(new_test)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+
+
+@app.get("/add-fish/{tank_id}", response_class=HTMLResponse)
+def add_fish_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "add_fish.html",
+        {"request": request, "tank_id": tank_id}
+    )
+
+
+@app.post("/add-fish/{tank_id}")
+def add_fish(tank_id: int, species: str = Form(...), count: int = Form(...)):
+
+    db = SessionLocal()
+
+    new_fish = models.Fish(
