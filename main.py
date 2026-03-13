@@ -5,8 +5,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from database import engine, SessionLocal
 import models
 
+# create tables
 models.Base.metadata.create_all(bind=engine)
 
+# create app
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
@@ -15,7 +17,10 @@ templates = Jinja2Templates(directory="templates")
 # LOGIN PAGE
 @app.get("/", response_class=HTMLResponse)
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request}
+    )
 
 
 # LOGIN ACTION
@@ -29,7 +34,10 @@ def login(username: str = Form(...), password: str = Form(...)):
     ).first()
 
     if not user:
-        user = models.User(username=username, password=password)
+        user = models.User(
+            username=username,
+            password=password
+        )
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -88,68 +96,4 @@ def create_tank_page(request: Request):
 
 
 # CREATE TANK
-@app.post("/create-tank")
-def create_tank(name: str = Form(...), volume: int = Form(...), request: Request = None):
-
-    user_id = request.cookies.get("user_id")
-
-    db = SessionLocal()
-
-    tank = models.Tank(
-        name=name,
-        volume=volume,
-        owner_id=user_id
-    )
-
-    db.add(tank)
-    db.commit()
-
-    return RedirectResponse("/dashboard", status_code=303)
-
-
-# DELETE TANK
-@app.get("/delete-tank/{tank_id}")
-def delete_tank(tank_id: int):
-
-    db = SessionLocal()
-
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
-
-    if tank:
-        db.delete(tank)
-        db.commit()
-
-    return RedirectResponse("/dashboard", status_code=303)
-
-
-# TANK PAGE
-@app.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_page(request: Request, tank_id: int):
-
-    db = SessionLocal()
-
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
-
-    tests = db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
-    ).all()
-
-    ammonia = []
-    nitrite = []
-    nitrate = []
-    dates = []
-
-    for t in tests:
-        try:
-            ammonia.append(float(t.ammonia))
-            nitrite.append(float(t.nitrite))
-            nitrate.append(float(t.nitrate))
-            dates.append(t.created.strftime("%d %b"))
-        except:
-            pass
-
-    return templates.TemplateResponse(
+@app.post("/create-tank"
