@@ -12,37 +12,21 @@ body{
 background:#020617;
 color:white;
 font-family:Arial;
-padding:40px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-gap:20px;
+padding:20px;
 }
 
 .card{
 background:#0f172a;
 padding:20px;
 border-radius:12px;
-box-shadow:0 0 10px rgba(0,0,0,0.5);
+margin-bottom:20px;
 }
 
 button{
 background:#38bdf8;
 border:none;
-padding:10px 14px;
+padding:10px;
 border-radius:6px;
-cursor:pointer;
-}
-
-h1{
-color:#38bdf8;
-}
-
-canvas{
-max-width:300px;
-margin:auto;
 }
 
 </style>
@@ -51,7 +35,7 @@ margin:auto;
 
 <body>
 
-<h1>{{ tank.name }}</h1>
+<h2>{{ tank.name }}</h2>
 
 <p>{{ tank.volume }}L Aquarium</p>
 
@@ -59,88 +43,25 @@ margin:auto;
 
 <br><br>
 
-<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
-<a href="/add-fish/{{ tank.id }}"><button>Add Fish</button></a>
-
-<br><br>
-
-{% set total = 0 %}
-{% for f in fish %}
-{% set total = total + f.count %}
-{% endfor %}
-
-{% if tests %}
-{% set latest = tests[-1] %}
-{% else %}
-{% set latest = None %}
-{% endif %}
-
-{% set health = 100 %}
-{% if latest %}
-{% if latest.ammonia|float > 0 %}
-{% set health = health - 40 %}
-{% endif %}
-{% if latest.nitrite|float > 0 %}
-{% set health = health - 30 %}
-{% endif %}
-{% if latest.nitrate|float > 40 %}
-{% set health = health - 20 %}
-{% endif %}
-{% endif %}
-
-{% if tank.volume %}
-{% set stocking = (total / tank.volume * 100)|round %}
-{% else %}
-{% set stocking = 0 %}
-{% endif %}
-
-{% if latest %}
-{% if latest.ammonia|float > 0 %}
-{% set cycle = 30 %}
-{% elif latest.nitrite|float > 0 %}
-{% set cycle = 60 %}
-{% else %}
-{% set cycle = 100 %}
-{% endif %}
-{% else %}
-{% set cycle = 0 %}
-{% endif %}
-
-<div class="grid">
-
 <div class="card">
 
-<h2>Tank Health</h2>
+<h3>Aquarium Intelligence</h3>
 
-<canvas id="healthGauge"></canvas>
+{% if prediction %}
 
-<p>{{ health }}%</p>
+<p>{{ prediction }}</p>
+
+{% else %}
+
+<p>No prediction yet</p>
+
+{% endif %}
 
 </div>
 
 <div class="card">
 
-<h2>Bioload Pressure</h2>
-
-<canvas id="stockGauge"></canvas>
-
-<p>{{ stocking }}%</p>
-
-</div>
-
-<div class="card">
-
-<h2>Cycle Progress</h2>
-
-<canvas id="cycleGauge"></canvas>
-
-<p>{{ cycle }}%</p>
-
-</div>
-
-<div class="card">
-
-<h2>Fish Stock</h2>
+<h3>Fish Stock</h3>
 
 {% for f in fish %}
 
@@ -150,11 +71,7 @@ margin:auto;
 
 </div>
 
-</div>
-
-<br>
-
-<h2>Nitrogen Cycle Graph</h2>
+<h3>Nitrogen Cycle</h3>
 
 <canvas id="cycleChart"></canvas>
 
@@ -164,9 +81,9 @@ const ammonia = {{ ammonia }};
 const nitrite = {{ nitrite }};
 const nitrate = {{ nitrate }};
 
-const labels = ammonia.map((_, i) => "Test " + (i + 1));
+const labels = ammonia.map((_,i)=>"Test "+(i+1));
 
-new Chart(document.getElementById('cycleChart'), {
+new Chart(document.getElementById('cycleChart'),{
 
 type:'line',
 
@@ -176,47 +93,16 @@ labels:labels,
 
 datasets:[
 
-{
-label:'Ammonia',
-data:ammonia,
-borderColor:'#ef4444'
-},
+{label:'Ammonia',data:ammonia,borderColor:'#ef4444'},
 
-{
-label:'Nitrite',
-data:nitrite,
-borderColor:'#3b82f6'
-},
+{label:'Nitrite',data:nitrite,borderColor:'#3b82f6'},
 
-{
-label:'Nitrate',
-data:nitrate,
-borderColor:'#22c55e'
-}
+{label:'Nitrate',data:nitrate,borderColor:'#22c55e'}
 
 ]
 
 }
 
-});
-
-
-new Chart(document.getElementById('healthGauge'),{
-type:'doughnut',
-data:{datasets:[{data:[{{ health }},100-{{ health }}],backgroundColor:['#22c55e','#1e293b']}]},
-options:{cutout:'80%'}
-})
-
-new Chart(document.getElementById('stockGauge'),{
-type:'doughnut',
-data:{datasets:[{data:[{{ stocking }},100-{{ stocking }}],backgroundColor:['#38bdf8','#1e293b']}]},
-options:{cutout:'80%'}
-})
-
-new Chart(document.getElementById('cycleGauge'),{
-type:'doughnut',
-data:{datasets:[{data:[{{ cycle }},100-{{ cycle }}],backgroundColor:['#facc15','#1e293b']}]},
-options:{cutout:'80%'}
 })
 
 </script>
