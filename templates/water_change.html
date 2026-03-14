@@ -1,0 +1,49 @@
+<html>
+
+<head>
+
+<title>AquaGuardian</title>
+
+<style>
+
+body{
+background:#020617;
+color:white;
+font-family:Arial;
+padding:30px;
+}
+
+input{
+width:100%;
+padding:10px;
+margin-bottom:15px;
+}
+
+button{
+background:#38bdf8;
+border:none;
+padding:10px;
+border-radius:6px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Log Water Change</h2>
+
+<form method="post" action="/water-change/{{ tank_id }}">
+
+<label>Percent Changed</label>
+
+<input type="number" name="percent">
+
+<button type="submit">Save</button>
+
+</form>
+
+</body>
+
+</html>
