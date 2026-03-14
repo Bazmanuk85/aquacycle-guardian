@@ -17,10 +17,10 @@ padding:30px;
 
 .card{
 background:#0f172a;
-padding:20px;
+padding:25px;
 border-radius:12px;
-margin-bottom:25px;
-max-width:900px;
+margin-bottom:30px;
+max-width:950px;
 }
 
 button{
@@ -34,7 +34,7 @@ margin-right:10px;
 
 canvas{
 background:#020617;
-padding:15px;
+padding:20px;
 border-radius:10px;
 }
 
@@ -57,9 +57,9 @@ border-radius:10px;
 
 <div class="card">
 
-<h2>Water Chemistry Trends</h2>
+<h2>Aquarium Water Chemistry</h2>
 
-<canvas id="waterChart"></canvas>
+<canvas id="chart"></canvas>
 
 </div>
 
@@ -68,71 +68,75 @@ border-radius:10px;
 
 const labels = {{ labels | tojson }}
 
-const ammonia = {{ ammonia | tojson }}
-const nitrite = {{ nitrite | tojson }}
-const nitrate = {{ nitrate | tojson }}
-const ph = {{ ph | tojson }}
-const temperature = {{ temperature | tojson }}
-
-
 const data = {
+
 labels: labels,
+
 datasets: [
 
 {
-label: "Ammonia",
-data: ammonia,
-borderColor: "#ef4444",
-backgroundColor: "rgba(239,68,68,0.2)",
-tension: 0.4
+label:"Ammonia",
+data:{{ ammonia | tojson }},
+borderColor:"#ef4444",
+borderWidth:3,
+pointRadius:5,
+tension:0.4
 },
 
 {
-label: "Nitrite",
-data: nitrite,
-borderColor: "#f59e0b",
-backgroundColor: "rgba(245,158,11,0.2)",
-tension: 0.4
+label:"Nitrite",
+data:{{ nitrite | tojson }},
+borderColor:"#f59e0b",
+borderWidth:3,
+pointRadius:5,
+tension:0.4
 },
 
 {
-label: "Nitrate",
-data: nitrate,
-borderColor: "#22c55e",
-backgroundColor: "rgba(34,197,94,0.2)",
-tension: 0.4
+label:"Nitrate",
+data:{{ nitrate | tojson }},
+borderColor:"#22c55e",
+borderWidth:3,
+pointRadius:5,
+tension:0.4
 },
 
 {
-label: "pH",
-data: ph,
-borderColor: "#3b82f6",
-backgroundColor: "rgba(59,130,246,0.2)",
-tension: 0.4
+label:"pH",
+data:{{ ph | tojson }},
+borderColor:"#3b82f6",
+borderWidth:3,
+pointRadius:5,
+tension:0.4
 },
 
 {
-label: "Temperature",
-data: temperature,
-borderColor: "#a855f7",
-backgroundColor: "rgba(168,85,247,0.2)",
-tension: 0.4
+label:"Temperature",
+data:{{ temperature | tojson }},
+borderColor:"#a855f7",
+borderWidth:3,
+pointRadius:5,
+tension:0.4
 }
 
 ]
+
 }
 
 new Chart(
-document.getElementById("waterChart"),
-{
-type: "line",
-data: data,
-options: {
 
-responsive: true,
+document.getElementById("chart"),
+
+{
+type:"line",
+data:data,
+
+options:{
+
+responsive:true,
 
 interaction:{
-mode:'index',
+mode:"index",
 intersect:false
 },
 
@@ -152,7 +156,9 @@ ticks:{color:"white"}
 }
 
 }
+
 }
+
 )
 
 </script>
