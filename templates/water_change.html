@@ -13,10 +13,19 @@ font-family:Arial;
 padding:30px;
 }
 
+.card{
+background:#0f172a;
+padding:20px;
+border-radius:10px;
+max-width:400px;
+}
+
 input{
 width:100%;
 padding:10px;
 margin-bottom:15px;
+border-radius:6px;
+border:none;
 }
 
 button{
@@ -24,6 +33,12 @@ background:#38bdf8;
 border:none;
 padding:10px;
 border-radius:6px;
+cursor:pointer;
+}
+
+.error{
+color:#ef4444;
+margin-bottom:10px;
 }
 
 </style>
@@ -32,17 +47,25 @@ border-radius:6px;
 
 <body>
 
-<h2>Log Water Change</h2>
+<h1>Log Water Change</h1>
+
+<div class="card">
+
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
 
 <form method="post" action="/water-change/{{ tank_id }}">
 
-<label>Percent Changed</label>
+<label>Water Change %</label>
 
 <input type="number" name="percent">
 
 <button type="submit">Save</button>
 
 </form>
+
+</div>
 
 </body>
 
