@@ -38,7 +38,6 @@ def dashboard(request: Request):
             models.WaterChange.tank_id == tank.id
         ).order_by(models.WaterChange.created.desc()).first()
 
-
         if latest_change:
 
             days = (datetime.utcnow() - latest_change.created).days
@@ -49,7 +48,6 @@ def dashboard(request: Request):
                     f"{tank.name}: {days} days since last water change"
                 )
 
-
         if latest_test:
 
             nitrate = float(latest_test.nitrate)
@@ -57,7 +55,7 @@ def dashboard(request: Request):
             if nitrate >= 40:
 
                 alerts.append(
-                    f"{tank.name}: Nitrate high — perform water change"
+                    f"{tank.name}: High nitrate — water change recommended"
                 )
 
     return templates.TemplateResponse(
@@ -160,7 +158,6 @@ def tank_page(request: Request, tank_id: int):
         nitrate.append(float(t.nitrate))
         dates.append(t.created.strftime("%d %b"))
 
-
     last_change = None
     days_since_change = None
 
@@ -176,6 +173,8 @@ def tank_page(request: Request, tank_id: int):
     cycle_progress = 0
     tank_health = "Unknown"
     recommendation = "Add water test data"
+    water_change_recommendation = None
+
 
     if tests:
 
@@ -184,6 +183,9 @@ def tank_page(request: Request, tank_id: int):
         a = float(latest.ammonia)
         ni = float(latest.nitrite)
         na = float(latest.nitrate)
+
+
+        # CYCLE STAGE
 
         if a > 0.5 and ni == 0:
             cycle_stage = "Ammonia Spike"
@@ -201,6 +203,8 @@ def tank_page(request: Request, tank_id: int):
             cycle_stage = "Nitrate Rising"
             cycle_progress = 80
 
+
+        # HEALTH SCORE
 
         health_score = 100
 
@@ -227,16 +231,32 @@ def tank_page(request: Request, tank_id: int):
             tank_health = "Danger"
 
 
-        if a > 0.5 or ni > 0.5:
-            recommendation = "Tank cycling — avoid water changes unless emergency"
+        # RECOMMENDATIONS
 
-        elif na > 40:
-            recommendation = "Perform a 25% water change"
+        if na > 40:
+
+            recommendation = "High nitrate detected"
+
+            target = 20
+
+            change_percent = ((na - target) / na) * 100
+
+            if change_percent > 100:
+                change_percent = 100
+
+            water_change_recommendation = round(change_percent)
+
 
         elif na > 20:
-            recommendation = "Monitor nitrate — water change soon"
+
+            recommendation = "Nitrate rising — monitor levels"
+
+        elif a > 0.5 or ni > 0.5:
+
+            recommendation = "Tank cycling — avoid water changes unless emergency"
 
         else:
+
             recommendation = "Tank stable"
 
 
@@ -253,6 +273,7 @@ def tank_page(request: Request, tank_id: int):
             "cycle_progress": cycle_progress,
             "tank_health": tank_health,
             "recommendation": recommendation,
+            "water_change_recommendation": water_change_recommendation,
             "last_change": last_change,
             "days_since_change": days_since_change
         }
