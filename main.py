@@ -2,19 +2,19 @@ from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
-from database import engine
+from database import engine, SessionLocal
 import models
 
-from database import SessionLocal
 from routes import tanks
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
 
-# CREATE DATABASE TABLES AUTOMATICALLY
+# create database tables
 models.Base.metadata.create_all(bind=engine)
 
+# load routes
 app.include_router(tanks.router)
 
 
@@ -46,18 +46,15 @@ def login(request: Request, username: str = Form(...), password: str = Form(...)
         models.User.username == username
     ).first()
 
-    # Create default admin if none exists
     if not user and username == "admin" and password == "admin":
 
-        new_user = models.User(
+        user = models.User(
             username="admin",
             password="admin"
         )
 
-        db.add(new_user)
+        db.add(user)
         db.commit()
-
-        user = new_user
 
     if not user or user.password != password:
 
