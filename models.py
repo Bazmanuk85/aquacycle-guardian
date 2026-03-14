@@ -5,26 +5,22 @@ from datetime import datetime
 
 
 class User(Base):
-
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String)
     password = Column(String)
 
     tanks = relationship("Tank", back_populates="owner")
 
 
 class Tank(Base):
-
     __tablename__ = "tanks"
 
-    id = Column(Integer, primary_key=True)
-
+    id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
     volume = Column(Integer)
-
-    tank_type = Column(String)  # freshwater / marine / brackish
+    tank_type = Column(String)
 
     owner_id = Column(Integer, ForeignKey("users.id"))
 
@@ -32,17 +28,15 @@ class Tank(Base):
 
 
 class WaterTest(Base):
-
     __tablename__ = "water_tests"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     tank_id = Column(Integer, ForeignKey("tanks.id"))
 
     ammonia = Column(String)
     nitrite = Column(String)
     nitrate = Column(String)
-
     ph = Column(String)
     temperature = Column(String)
 
@@ -50,10 +44,9 @@ class WaterTest(Base):
 
 
 class WaterChange(Base):
-
     __tablename__ = "water_changes"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
     tank_id = Column(Integer, ForeignKey("tanks.id"))
 
