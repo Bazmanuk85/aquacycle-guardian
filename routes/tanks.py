@@ -86,6 +86,11 @@ def tank_page(request: Request, tank_id: int):
         models.WaterTest.tank_id == tank_id
     ).all()
 
+    changes = db.query(models.WaterChange).filter(
+        models.WaterChange.tank_id == tank_id
+    ).order_by(models.WaterChange.created.desc()).all()
+
+
     ammonia = []
     nitrite = []
     nitrate = []
@@ -98,6 +103,20 @@ def tank_page(request: Request, tank_id: int):
         nitrate.append(float(t.nitrate))
         dates.append(t.created.strftime("%d %b"))
 
+
+    # LAST WATER CHANGE
+    last_change = None
+    days_since_change = None
+
+    if changes:
+
+        latest_change = changes[0]
+
+        last_change = latest_change.percent
+        days_since_change = (datetime.utcnow() - latest_change.created).days
+
+
+    # CYCLE ANALYTICS
     cycle_stage = "No data"
     cycle_progress = 0
     tank_health = "Unknown"
@@ -127,6 +146,7 @@ def tank_page(request: Request, tank_id: int):
             cycle_stage = "Nitrate Rising"
             cycle_progress = 80
 
+
         health_score = 100
 
         if a > 0.25:
@@ -150,6 +170,7 @@ def tank_page(request: Request, tank_id: int):
         else:
             tank_health = "Danger"
 
+
         if a > 0.5 or ni > 0.5:
             recommendation = "Tank cycling — avoid water changes unless emergency"
 
@@ -161,6 +182,7 @@ def tank_page(request: Request, tank_id: int):
 
         else:
             recommendation = "Tank stable"
+
 
     return templates.TemplateResponse(
         "tank.html",
@@ -174,7 +196,9 @@ def tank_page(request: Request, tank_id: int):
             "cycle_stage": cycle_stage,
             "cycle_progress": cycle_progress,
             "tank_health": tank_health,
-            "recommendation": recommendation
+            "recommendation": recommendation,
+            "last_change": last_change,
+            "days_since_change": days_since_change
         }
     )
 
