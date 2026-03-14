@@ -15,21 +15,12 @@ font-family:Arial;
 padding:30px;
 }
 
-.header{
-display:flex;
-justify-content:space-between;
-}
-
-.title{
-color:#38bdf8;
-font-size:26px;
-}
-
 button{
 background:#38bdf8;
 border:none;
 padding:10px;
 border-radius:6px;
+cursor:pointer;
 }
 
 </style>
@@ -38,56 +29,72 @@ border-radius:6px;
 
 <body>
 
-<div class="header">
-
-<div class="title">AquaGuardian</div>
-
-<a href="/logout"><button>Logout</button></a>
-
-</div>
-
 <h1>{{ tank.name }}</h1>
 
 <p>{{ tank.volume }}L Aquarium</p>
 
 <a href="/dashboard"><button>Back</button></a>
-
 <a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
 
 <br><br>
 
 <h2>Nitrogen Cycle</h2>
 
-<canvas id="chart"></canvas>
+<canvas id="cycleChart"></canvas>
 
 <script>
 
-const ammonia = {{ ammonia }};
-const nitrite = {{ nitrite }};
-const nitrate = {{ nitrate }};
-const labels = {{ dates }};
+const ammonia = {{ ammonia | tojson }};
+const nitrite = {{ nitrite | tojson }};
+const nitrate = {{ nitrate | tojson }};
+const labels = {{ dates | tojson }};
 
-new Chart(document.getElementById('chart'),{
+const ctx = document.getElementById("cycleChart").getContext("2d");
 
-type:'line',
-
-data:{
-
-labels:labels,
-
-datasets:[
-
-{label:'Ammonia',data:ammonia,borderColor:'#ef4444'},
-
-{label:'Nitrite',data:nitrite,borderColor:'#3b82f6'},
-
-{label:'Nitrate',data:nitrate,borderColor:'#22c55e'}
-
-]
-
-}
-
-})
+new Chart(ctx,{
+    type: "line",
+    data: {
+        labels: labels,
+        datasets: [
+            {
+                label: "Ammonia",
+                data: ammonia,
+                borderColor: "#ef4444",
+                tension: 0.3
+            },
+            {
+                label: "Nitrite",
+                data: nitrite,
+                borderColor: "#3b82f6",
+                tension: 0.3
+            },
+            {
+                label: "Nitrate",
+                data: nitrate,
+                borderColor: "#22c55e",
+                tension: 0.3
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                labels: {
+                    color: "white"
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: "white" }
+            },
+            y: {
+                ticks: { color: "white" }
+            }
+        }
+    }
+});
 
 </script>
 
