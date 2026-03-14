@@ -28,6 +28,7 @@ border:none;
 padding:10px;
 border-radius:6px;
 cursor:pointer;
+margin-right:10px;
 }
 
 </style>
@@ -52,8 +53,24 @@ cursor:pointer;
 
 </div>
 
+<div class="card">
+
+{% if last_change %}
+
+<p>Last Water Change: {{ last_change }}%</p>
+<p>Days Since Change: {{ days_since_change }}</p>
+
+{% else %}
+
+<p>No water changes logged</p>
+
+{% endif %}
+
+</div>
+
 <a href="/dashboard"><button>Back</button></a>
 <a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
+<a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
 
 <br><br>
 
