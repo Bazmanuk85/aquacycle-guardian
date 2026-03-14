@@ -10,7 +10,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-# DASHBOARD
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
 
@@ -38,25 +37,54 @@ def dashboard(request: Request):
             models.WaterChange.tank_id == tank.id
         ).order_by(models.WaterChange.created.desc()).first()
 
+
+        # WATER CHANGE ALERTS
+
         if latest_change:
 
             days = (datetime.utcnow() - latest_change.created).days
 
+            alerts.append(
+                f"{tank.name}: last water change {days} days ago"
+            )
+
             if days >= 7:
 
                 alerts.append(
-                    f"{tank.name}: {days} days since last water change"
+                    f"{tank.name}: water change recommended"
                 )
+
+
+        # WATER TEST ALERTS
 
         if latest_test:
 
             nitrate = float(latest_test.nitrate)
+            ammonia = float(latest_test.ammonia)
+            nitrite = float(latest_test.nitrite)
+
+            alerts.append(
+                f"{tank.name}: Nitrate level {nitrate} ppm"
+            )
 
             if nitrate >= 40:
 
                 alerts.append(
-                    f"{tank.name}: High nitrate — water change recommended"
+                    f"{tank.name}: HIGH nitrate — perform water change"
                 )
+
+            if ammonia > 0.25:
+
+                alerts.append(
+                    f"{tank.name}: Ammonia detected ⚠"
+                )
+
+            if nitrite > 0.25:
+
+                alerts.append(
+                    f"{tank.name}: Nitrite spike ⚠"
+                )
+
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -67,303 +95,3 @@ def dashboard(request: Request):
             "alerts": alerts
         }
     )
-
-
-# CREATE TANK PAGE
-@router.get("/create-tank", response_class=HTMLResponse)
-def create_tank_page(request: Request):
-
-    return templates.TemplateResponse(
-        "create_tank.html",
-        {"request": request}
-    )
-
-
-# CREATE TANK
-@router.post("/create-tank")
-def create_tank(
-    request: Request,
-    name: str = Form(...),
-    volume: int = Form(...),
-    tank_type: str = Form(...)
-):
-
-    user_id = request.cookies.get("user_id")
-
-    db = SessionLocal()
-
-    tank = models.Tank(
-        name=name,
-        volume=volume,
-        tank_type=tank_type,
-        owner_id=int(user_id)
-    )
-
-    db.add(tank)
-    db.commit()
-
-    return RedirectResponse("/dashboard", status_code=303)
-
-
-# DELETE TANK
-@router.post("/delete-tank/{tank_id}")
-def delete_tank(tank_id: int):
-
-    db = SessionLocal()
-
-    db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
-    ).delete()
-
-    db.query(models.WaterChange).filter(
-        models.WaterChange.tank_id == tank_id
-    ).delete()
-
-    db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).delete()
-
-    db.commit()
-
-    return RedirectResponse("/dashboard", status_code=303)
-
-
-# TANK PAGE
-@router.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_page(request: Request, tank_id: int):
-
-    db = SessionLocal()
-
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
-
-    tests = db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
-    ).all()
-
-    changes = db.query(models.WaterChange).filter(
-        models.WaterChange.tank_id == tank_id
-    ).order_by(models.WaterChange.created.desc()).all()
-
-    ammonia = []
-    nitrite = []
-    nitrate = []
-    dates = []
-
-    for t in tests:
-
-        ammonia.append(float(t.ammonia))
-        nitrite.append(float(t.nitrite))
-        nitrate.append(float(t.nitrate))
-        dates.append(t.created.strftime("%d %b"))
-
-    last_change = None
-    days_since_change = None
-
-    if changes:
-
-        latest_change = changes[0]
-
-        last_change = latest_change.percent
-        days_since_change = (datetime.utcnow() - latest_change.created).days
-
-
-    cycle_stage = "No data"
-    cycle_progress = 0
-    tank_health = "Unknown"
-    recommendation = "Add water test data"
-    water_change_recommendation = None
-
-
-    if tests:
-
-        latest = tests[-1]
-
-        a = float(latest.ammonia)
-        ni = float(latest.nitrite)
-        na = float(latest.nitrate)
-
-
-        # CYCLE STAGE
-
-        if a > 0.5 and ni == 0:
-            cycle_stage = "Ammonia Spike"
-            cycle_progress = 20
-
-        elif ni > 0.5:
-            cycle_stage = "Nitrite Spike"
-            cycle_progress = 60
-
-        elif na > 5 and a == 0 and ni == 0:
-            cycle_stage = "Cycle Complete"
-            cycle_progress = 100
-
-        elif na > 0:
-            cycle_stage = "Nitrate Rising"
-            cycle_progress = 80
-
-
-        # HEALTH SCORE
-
-        health_score = 100
-
-        if a > 0.25:
-            health_score -= 40
-
-        if ni > 0.25:
-            health_score -= 30
-
-        if na > 40:
-            health_score -= 20
-
-
-        if health_score >= 80:
-            tank_health = "Excellent"
-
-        elif health_score >= 60:
-            tank_health = "Good"
-
-        elif health_score >= 40:
-            tank_health = "Warning"
-
-        else:
-            tank_health = "Danger"
-
-
-        # RECOMMENDATIONS
-
-        if na > 40:
-
-            recommendation = "High nitrate detected"
-
-            target = 20
-
-            change_percent = ((na - target) / na) * 100
-
-            if change_percent > 100:
-                change_percent = 100
-
-            water_change_recommendation = round(change_percent)
-
-
-        elif na > 20:
-
-            recommendation = "Nitrate rising — monitor levels"
-
-        elif a > 0.5 or ni > 0.5:
-
-            recommendation = "Tank cycling — avoid water changes unless emergency"
-
-        else:
-
-            recommendation = "Tank stable"
-
-
-    return templates.TemplateResponse(
-        "tank.html",
-        {
-            "request": request,
-            "tank": tank,
-            "ammonia": ammonia,
-            "nitrite": nitrite,
-            "nitrate": nitrate,
-            "dates": dates,
-            "cycle_stage": cycle_stage,
-            "cycle_progress": cycle_progress,
-            "tank_health": tank_health,
-            "recommendation": recommendation,
-            "water_change_recommendation": water_change_recommendation,
-            "last_change": last_change,
-            "days_since_change": days_since_change
-        }
-    )
-
-
-# ADD TEST PAGE
-@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
-def add_test_page(request: Request, tank_id: int):
-
-    return templates.TemplateResponse(
-        "add_test.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
-    )
-
-
-# SAVE WATER TEST
-@router.post("/add-test/{tank_id}")
-def add_test(
-    tank_id: int,
-    ammonia: float = Form(...),
-    nitrite: float = Form(...),
-    nitrate: float = Form(...),
-    ph: float = Form(...),
-    temperature: float = Form(...)
-):
-
-    db = SessionLocal()
-
-    test = models.WaterTest(
-        tank_id=tank_id,
-        ammonia=str(ammonia),
-        nitrite=str(nitrite),
-        nitrate=str(nitrate),
-        ph=str(ph),
-        temperature=str(temperature),
-        created=datetime.utcnow()
-    )
-
-    db.add(test)
-    db.commit()
-
-    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
-
-
-# WATER CHANGE PAGE
-@router.get("/water-change/{tank_id}", response_class=HTMLResponse)
-def water_change_page(request: Request, tank_id: int):
-
-    return templates.TemplateResponse(
-        "water_change.html",
-        {
-            "request": request,
-            "tank_id": tank_id,
-            "error": None
-        }
-    )
-
-
-# SAVE WATER CHANGE
-@router.post("/water-change/{tank_id}")
-def add_water_change(
-    request: Request,
-    tank_id: int,
-    percent: int = Form(...)
-):
-
-    if percent > 100:
-
-        return templates.TemplateResponse(
-            "water_change.html",
-            {
-                "request": request,
-                "tank_id": tank_id,
-                "error": "Cannot exceed 100%!!"
-            }
-        )
-
-    db = SessionLocal()
-
-    change = models.WaterChange(
-        tank_id=tank_id,
-        percent=percent,
-        created=datetime.utcnow()
-    )
-
-    db.add(change)
-    db.commit()
-
-    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
