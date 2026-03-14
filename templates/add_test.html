@@ -2,7 +2,7 @@
 
 <head>
 
-<title>Log Water Test</title>
+<title>AquaGuardian</title>
 
 <style>
 
@@ -13,17 +13,20 @@ font-family:Arial;
 padding:30px;
 }
 
-.card{
+.container{
+max-width:500px;
+margin:auto;
 background:#0f172a;
-padding:20px;
+padding:30px;
 border-radius:10px;
-width:400px;
 }
 
 input{
 width:100%;
-padding:8px;
-margin-bottom:10px;
+padding:10px;
+margin-bottom:15px;
+border-radius:5px;
+border:none;
 }
 
 button{
@@ -31,6 +34,13 @@ background:#38bdf8;
 border:none;
 padding:10px;
 border-radius:6px;
+cursor:pointer;
+width:100%;
+}
+
+a{
+color:#38bdf8;
+text-decoration:none;
 }
 
 </style>
@@ -39,32 +49,36 @@ border-radius:6px;
 
 <body>
 
-<a href="/logout"><button>Logout</button></a>
+<h1>AquaGuardian</h1>
 
-<div class="card">
+<div class="container">
 
 <h2>Log Water Test</h2>
 
-<form action="/add-test/{{ tank_id }}" method="post">
+<form method="post" action="/add-test/{{ tank_id }}">
 
-Ammonia
-<input name="ammonia">
+<label>Ammonia (ppm)</label>
+<input type="text" name="ammonia" required>
 
-Nitrite
-<input name="nitrite">
+<label>Nitrite (ppm)</label>
+<input type="text" name="nitrite" required>
 
-Nitrate
-<input name="nitrate">
+<label>Nitrate (ppm)</label>
+<input type="text" name="nitrate" required>
 
-pH
-<input name="ph">
+<label>pH</label>
+<input type="text" name="ph" required>
 
-Temperature
-<input name="temperature">
+<label>Temperature (°C)</label>
+<input type="text" name="temperature" required>
 
-<button type="submit">Save</button>
+<button type="submit">Save Water Test</button>
 
 </form>
+
+<br>
+
+<a href="/tank/{{ tank_id }}">← Back to Tank</a>
 
 </div>
 
