@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from database import SessionLocal
 import models
+
 from fastapi.templating import Jinja2Templates
 
 from services.analytics import detect_cycle_stage
@@ -61,13 +62,13 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# TANK DETAILS
+# VIEW TANK
 @router.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
 
     tank = db.query(models.Tank).filter(models.Tank.id == tank_id).first()
 
-    if tank is None:
+    if not tank:
         raise HTTPException(status_code=404, detail="Tank not found")
 
     tests = db.query(models.WaterTest).filter(
@@ -91,3 +92,74 @@ def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
             "cycle_percent": cycle_percent
         }
     )
+
+
+# ADD WATER TEST PAGE
+@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
+def add_test_page(request: Request, tank_id: int):
+    return templates.TemplateResponse(
+        "add_test.html",
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
+    )
+
+
+# SAVE WATER TEST
+@router.post("/add-test/{tank_id}")
+def add_test(
+    tank_id: int,
+    ammonia: float = Form(...),
+    nitrite: float = Form(...),
+    nitrate: float = Form(...),
+    ph: float = Form(...),
+    temperature: float = Form(...),
+    db: Session = Depends(get_db)
+):
+
+    test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=ammonia,
+        nitrite=nitrite,
+        nitrate=nitrate,
+        ph=ph,
+        temperature=temperature
+    )
+
+    db.add(test)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+
+
+# WATER CHANGE PAGE
+@router.get("/water-change/{tank_id}", response_class=HTMLResponse)
+def water_change_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "water_change.html",
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
+    )
+
+
+# SAVE WATER CHANGE
+@router.post("/water-change/{tank_id}")
+def save_water_change(
+    tank_id: int,
+    percent: float = Form(...),
+    db: Session = Depends(get_db)
+):
+
+    change = models.WaterChange(
+        tank_id=tank_id,
+        percent=percent
+    )
+
+    db.add(change)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
