@@ -1,80 +1,88 @@
-from fastapi import APIRouter, Request, Form
+from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 
 from database import SessionLocal
 import models
 
+from fastapi.templating import Jinja2Templates
+
 from services.analytics import detect_cycle_stage
 
 router = APIRouter()
-
 templates = Jinja2Templates(directory="templates")
 
 
-@router.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request):
-
-    user_id = request.cookies.get("user_id")
-    username = request.cookies.get("username")
-
-    if not user_id:
-        return RedirectResponse("/", status_code=303)
-
+def get_db():
     db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-    tanks = db.query(models.Tank).filter(
-        models.Tank.owner_id == int(user_id)
-    ).all()
+
+# DASHBOARD
+@router.get("/dashboard", response_class=HTMLResponse)
+def dashboard(request: Request, db: Session = Depends(get_db)):
+
+    tanks = db.query(models.Tank).all()
 
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
-            "username": username,
-            "tanks": tanks,
-            "alerts": []
+            "tanks": tanks
         }
     )
 
 
+# CREATE TANK PAGE
+@router.get("/create-tank", response_class=HTMLResponse)
+def create_tank_page(request: Request):
+    return templates.TemplateResponse(
+        "create_tank.html",
+        {"request": request}
+    )
+
+
+# CREATE TANK POST
+@router.post("/create-tank")
+def create_tank(
+    name: str = Form(...),
+    tank_type: str = Form(...),
+    db: Session = Depends(get_db)
+):
+
+    tank = models.Tank(
+        name=name,
+        tank_type=tank_type
+    )
+
+    db.add(tank)
+    db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
+
+
+# VIEW TANK
 @router.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_page(request: Request, tank_id: int):
+def tank_detail(
+    request: Request,
+    tank_id: int,
+    db: Session = Depends(get_db)
+):
 
-    db = SessionLocal()
-
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
+    tank = db.query(models.Tank).filter(models.Tank.id == tank_id).first()
 
     tests = db.query(models.WaterTest).filter(
         models.WaterTest.tank_id == tank_id
-    ).order_by(models.WaterTest.created).all()
+    ).all()
 
-    changes = db.query(models.WaterChange).filter(
+    water_changes = db.query(models.WaterChange).filter(
         models.WaterChange.tank_id == tank_id
     ).all()
 
-    # Graph Data
-    labels = []
-    ammonia = []
-    nitrite = []
-    nitrate = []
-    ph = []
-    temperature = []
-
-    for t in tests:
-
-        labels.append(t.created.strftime("%d %b"))
-
-        ammonia.append(float(t.ammonia))
-        nitrite.append(float(t.nitrite))
-        nitrate.append(float(t.nitrate))
-        ph.append(float(t.ph))
-        temperature.append(float(t.temperature))
-
-    # Cycle intelligence
-    cycle_stage, cycle_progress = detect_cycle_stage(tests)
+    cycle_stage, cycle_percent = detect_cycle_stage(tests)
 
     return templates.TemplateResponse(
         "tank.html",
@@ -82,14 +90,8 @@ def tank_page(request: Request, tank_id: int):
             "request": request,
             "tank": tank,
             "tests": tests,
-            "changes": changes,
-            "labels": labels,
-            "ammonia": ammonia,
-            "nitrite": nitrite,
-            "nitrate": nitrate,
-            "ph": ph,
-            "temperature": temperature,
+            "water_changes": water_changes,
             "cycle_stage": cycle_stage,
-            "cycle_progress": cycle_progress
+            "cycle_percent": cycle_percent
         }
     )
