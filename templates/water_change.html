@@ -17,7 +17,7 @@ padding:30px;
 background:#0f172a;
 padding:20px;
 border-radius:10px;
-max-width:400px;
+max-width:420px;
 }
 
 input{
@@ -34,6 +34,7 @@ border:none;
 padding:10px;
 border-radius:6px;
 cursor:pointer;
+margin-right:10px;
 }
 
 .error{
@@ -58,10 +59,13 @@ margin-bottom:10px;
 <form method="post" action="/water-change/{{ tank_id }}">
 
 <label>Water Change %</label>
-
-<input type="number" name="percent">
+<input type="number" name="percent" required>
 
 <button type="submit">Save</button>
+
+<a href="/tank/{{ tank_id }}">
+<button type="button">Back</button>
+</a>
 
 </form>
 
