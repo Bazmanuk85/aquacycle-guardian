@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-
 from database import SessionLocal
 import models
 from datetime import datetime
@@ -58,9 +57,6 @@ def create_tank(
 
     user_id = request.cookies.get("user_id")
 
-    if not user_id:
-        return RedirectResponse("/", status_code=303)
-
     db = SessionLocal()
 
     tank = models.Tank(
@@ -76,7 +72,7 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# VIEW TANK
+# TANK PAGE
 @router.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_page(request: Request, tank_id: int):
 
@@ -90,119 +86,81 @@ def tank_page(request: Request, tank_id: int):
         models.WaterTest.tank_id == tank_id
     ).all()
 
-    changes = db.query(models.WaterChange).filter(
-        models.WaterChange.tank_id == tank_id
-    ).all()
-
     ammonia = []
     nitrite = []
     nitrate = []
     dates = []
 
     for t in tests:
-        try:
-            ammonia.append(float(t.ammonia))
-            nitrite.append(float(t.nitrite))
-            nitrate.append(float(t.nitrate))
-            dates.append(t.created.strftime("%d %b"))
-        except:
-            pass
 
-
-    # WATER CHANGE INFO
-    last_change = None
-    days_since_change = None
-
-    if changes:
-
-        last = changes[-1]
-
-        last_change = last.percent
-        days_since_change = (datetime.utcnow() - last.created).days
-
-
-    # AQUARIUM INTELLIGENCE
+        ammonia.append(float(t.ammonia))
+        nitrite.append(float(t.nitrite))
+        nitrate.append(float(t.nitrate))
+        dates.append(t.created.strftime("%d %b"))
 
     cycle_stage = "No data"
     cycle_progress = 0
     tank_health = "Unknown"
     recommendation = "Add water test data"
 
-
     if tests:
 
         latest = tests[-1]
 
-        try:
+        a = float(latest.ammonia)
+        ni = float(latest.nitrite)
+        na = float(latest.nitrate)
 
-            a = float(latest.ammonia)
-            ni = float(latest.nitrite)
-            na = float(latest.nitrate)
+        if a > 0.5 and ni == 0:
+            cycle_stage = "Ammonia Spike"
+            cycle_progress = 20
 
+        elif ni > 0.5:
+            cycle_stage = "Nitrite Spike"
+            cycle_progress = 60
 
-            # CYCLE STAGE
+        elif na > 5 and a == 0 and ni == 0:
+            cycle_stage = "Cycle Complete"
+            cycle_progress = 100
 
-            if a > 0.5 and ni == 0:
-                cycle_stage = "Ammonia Spike"
-                cycle_progress = 20
+        elif na > 0:
+            cycle_stage = "Nitrate Rising"
+            cycle_progress = 80
 
-            elif ni > 0.5:
-                cycle_stage = "Nitrite Spike"
-                cycle_progress = 60
+        health_score = 100
 
-            elif na > 5 and a == 0 and ni == 0:
-                cycle_stage = "Cycle Complete"
-                cycle_progress = 100
+        if a > 0.25:
+            health_score -= 40
 
-            elif na > 0:
-                cycle_stage = "Nitrate Rising"
-                cycle_progress = 80
+        if ni > 0.25:
+            health_score -= 30
 
+        if na > 40:
+            health_score -= 20
 
-            # HEALTH SCORE
+        if health_score >= 80:
+            tank_health = "Excellent"
 
-            health_score = 100
+        elif health_score >= 60:
+            tank_health = "Good"
 
-            if a > 0.25:
-                health_score -= 40
+        elif health_score >= 40:
+            tank_health = "Warning"
 
-            if ni > 0.25:
-                health_score -= 30
+        else:
+            tank_health = "Danger"
 
-            if na > 40:
-                health_score -= 20
+        if a > 0.5 or ni > 0.5:
+            recommendation = "Tank cycling — avoid water changes unless emergency"
 
+        elif na > 40:
+            recommendation = "Perform a 25% water change"
 
-            if health_score >= 80:
-                tank_health = "Excellent"
+        elif na > 20:
+            recommendation = "Monitor nitrate — water change soon"
 
-            elif health_score >= 60:
-                tank_health = "Good"
-
-            elif health_score >= 40:
-                tank_health = "Warning"
-
-            else:
-                tank_health = "Danger"
-
-
-            # RECOMMENDATIONS
-
-            if a > 0.5 or ni > 0.5:
-                recommendation = "Tank cycling — avoid water changes unless emergency"
-
-            elif na > 40:
-                recommendation = "Perform a 25% water change"
-
-            elif na > 20:
-                recommendation = "Monitor nitrate — water change soon"
-
-            else:
-                recommendation = "Tank stable"
-
-        except:
-            pass
-
+        else:
+            recommendation = "Tank stable"
 
     return templates.TemplateResponse(
         "tank.html",
@@ -216,9 +174,20 @@ def tank_page(request: Request, tank_id: int):
             "cycle_stage": cycle_stage,
             "cycle_progress": cycle_progress,
             "tank_health": tank_health,
-            "recommendation": recommendation,
-            "last_change": last_change,
-            "days_since_change": days_since_change
+            "recommendation": recommendation
+        }
+    )
+
+
+# ADD TEST PAGE
+@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
+def add_test_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "add_test.html",
+        {
+            "request": request,
+            "tank_id": tank_id
         }
     )
 
@@ -233,9 +202,6 @@ def add_test(
     ph: float = Form(...),
     temperature: float = Form(...)
 ):
-
-    if ph < 0 or ph > 14:
-        return RedirectResponse(f"/add-test/{tank_id}", status_code=303)
 
     db = SessionLocal()
 
