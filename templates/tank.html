@@ -23,6 +23,18 @@ margin-bottom:30px;
 max-width:950px;
 }
 
+.progress{
+height:20px;
+background:#1e293b;
+border-radius:10px;
+overflow:hidden;
+}
+
+.bar{
+height:20px;
+background:#22c55e;
+}
+
 button{
 background:#38bdf8;
 border:none;
@@ -30,12 +42,6 @@ padding:10px;
 border-radius:6px;
 cursor:pointer;
 margin-right:10px;
-}
-
-canvas{
-background:#020617;
-padding:20px;
-border-radius:10px;
 }
 
 </style>
@@ -48,21 +54,31 @@ border-radius:10px;
 
 <div class="card">
 
+<h2>Nitrogen Cycle Status</h2>
+
+<p>{{ cycle_stage }}</p>
+
+<div class="progress">
+<div class="bar" style="width:{{ cycle_progress }}%"></div>
+</div>
+
+</div>
+
+<div class="card">
+
 <a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
 <a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
 <a href="/dashboard"><button>Back</button></a>
 
 </div>
 
-
 <div class="card">
 
-<h2>Aquarium Water Chemistry</h2>
+<h2>Water Chemistry</h2>
 
 <canvas id="chart"></canvas>
 
 </div>
-
 
 <script>
 
@@ -78,8 +94,6 @@ datasets: [
 label:"Ammonia",
 data:{{ ammonia | tojson }},
 borderColor:"#ef4444",
-borderWidth:3,
-pointRadius:5,
 tension:0.4
 },
 
@@ -87,8 +101,6 @@ tension:0.4
 label:"Nitrite",
 data:{{ nitrite | tojson }},
 borderColor:"#f59e0b",
-borderWidth:3,
-pointRadius:5,
 tension:0.4
 },
 
@@ -96,8 +108,6 @@ tension:0.4
 label:"Nitrate",
 data:{{ nitrate | tojson }},
 borderColor:"#22c55e",
-borderWidth:3,
-pointRadius:5,
 tension:0.4
 },
 
@@ -105,8 +115,6 @@ tension:0.4
 label:"pH",
 data:{{ ph | tojson }},
 borderColor:"#3b82f6",
-borderWidth:3,
-pointRadius:5,
 tension:0.4
 },
 
@@ -114,8 +122,6 @@ tension:0.4
 label:"Temperature",
 data:{{ temperature | tojson }},
 borderColor:"#a855f7",
-borderWidth:3,
-pointRadius:5,
 tension:0.4
 }
 
@@ -124,42 +130,11 @@ tension:0.4
 }
 
 new Chart(
-
 document.getElementById("chart"),
-
 {
 type:"line",
-data:data,
-
-options:{
-
-responsive:true,
-
-interaction:{
-mode:"index",
-intersect:false
-},
-
-plugins:{
-legend:{
-labels:{color:"white"}
-}
-},
-
-scales:{
-x:{
-ticks:{color:"white"}
-},
-y:{
-ticks:{color:"white"}
-}
-}
-
-}
-
-}
-
-)
+data:data
+})
 
 </script>
 
