@@ -106,6 +106,9 @@ def tank_page(request: Request, tank_id: int):
     nitrate = []
     dates = []
 
+    health = 100
+    stage = "Unknown"
+
     for t in tests:
 
         try:
@@ -113,6 +116,42 @@ def tank_page(request: Request, tank_id: int):
             nitrite.append(float(t.nitrite))
             nitrate.append(float(t.nitrate))
             dates.append(t.created.strftime("%d %b"))
+        except:
+            pass
+
+    if tests:
+
+        latest = tests[-1]
+
+        try:
+
+            a = float(latest.ammonia)
+            ni = float(latest.nitrite)
+            na = float(latest.nitrate)
+
+            if a > 0.5:
+                health -= 40
+
+            if ni > 0.5:
+                health -= 30
+
+            if na > 40:
+                health -= 20
+
+            # cycle stage detection
+
+            if a > 0 and ni == 0:
+                stage = "Ammonia Spike"
+
+            elif ni > 0 and na == 0:
+                stage = "Nitrite Spike"
+
+            elif na > 0:
+                stage = "Nitrate Stage"
+
+            if a == 0 and ni == 0 and na > 0:
+                stage = "Cycle Complete"
+
         except:
             pass
 
@@ -125,7 +164,9 @@ def tank_page(request: Request, tank_id: int):
             "ammonia": ammonia,
             "nitrite": nitrite,
             "nitrate": nitrate,
-            "dates": dates
+            "dates": dates,
+            "health": health,
+            "stage": stage
         }
     )
 
