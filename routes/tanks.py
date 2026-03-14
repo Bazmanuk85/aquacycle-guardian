@@ -56,10 +56,6 @@ def dashboard(request: Request):
 
             nitrate = float(latest_test.nitrate)
 
-            alerts.append(
-                f"{tank.name}: nitrate level {nitrate} ppm"
-            )
-
             if nitrate >= 40:
 
                 alerts.append(
@@ -83,9 +79,7 @@ def create_tank_page(request: Request):
 
     return templates.TemplateResponse(
         "create_tank.html",
-        {
-            "request": request
-        }
+        {"request": request}
     )
 
 
@@ -150,7 +144,11 @@ def tank_page(request: Request, tank_id: int):
 
     tests = db.query(models.WaterTest).filter(
         models.WaterTest.tank_id == tank_id
-    ).all()
+    ).order_by(models.WaterTest.created.asc()).all()
+
+    changes = db.query(models.WaterChange).filter(
+        models.WaterChange.tank_id == tank_id
+    ).order_by(models.WaterChange.created.desc()).all()
 
     ammonia = []
     nitrite = []
@@ -164,6 +162,88 @@ def tank_page(request: Request, tank_id: int):
         nitrate.append(float(t.nitrate))
         dates.append(t.created.strftime("%d %b"))
 
+
+    # WATER CHANGE DATA
+    last_change = None
+    days_since_change = None
+
+    if changes:
+
+        latest = changes[0]
+
+        last_change = latest.percent
+        days_since_change = (datetime.utcnow() - latest.created).days
+
+
+    # CYCLE ANALYSIS
+    cycle_stage = "No data"
+    cycle_progress = 0
+    tank_health = "Unknown"
+    recommendation = "Add water test data"
+    water_change_recommendation = None
+
+    if tests:
+
+        latest = tests[-1]
+
+        a = float(latest.ammonia)
+        ni = float(latest.nitrite)
+        na = float(latest.nitrate)
+
+        if a > 0.5 and ni == 0:
+            cycle_stage = "Ammonia Spike"
+            cycle_progress = 20
+
+        elif ni > 0.5:
+            cycle_stage = "Nitrite Spike"
+            cycle_progress = 60
+
+        elif na > 5 and a == 0 and ni == 0:
+            cycle_stage = "Cycle Complete"
+            cycle_progress = 100
+
+        elif na > 0:
+            cycle_stage = "Nitrate Rising"
+            cycle_progress = 80
+
+
+        # HEALTH SCORE
+        health = 100
+
+        if a > 0.25:
+            health -= 40
+
+        if ni > 0.25:
+            health -= 30
+
+        if na > 40:
+            health -= 20
+
+        if health >= 80:
+            tank_health = "Excellent"
+
+        elif health >= 60:
+            tank_health = "Good"
+
+        elif health >= 40:
+            tank_health = "Warning"
+
+        else:
+            tank_health = "Danger"
+
+
+        # WATER CHANGE MATH
+        if na > 20:
+
+            target = 10
+
+            change_percent = int((1 - (target / na)) * 100)
+
+            if change_percent > 0:
+                water_change_recommendation = change_percent
+
+            recommendation = "Nitrate rising — water change recommended"
+
     return templates.TemplateResponse(
         "tank.html",
         {
@@ -173,13 +253,13 @@ def tank_page(request: Request, tank_id: int):
             "nitrite": nitrite,
             "nitrate": nitrate,
             "dates": dates,
-            "cycle_stage": "Monitoring",
-            "cycle_progress": 50,
-            "tank_health": "Stable",
-            "recommendation": "Monitor water quality",
-            "water_change_recommendation": None,
-            "last_change": None,
-            "days_since_change": None
+            "cycle_stage": cycle_stage,
+            "cycle_progress": cycle_progress,
+            "tank_health": tank_health,
+            "recommendation": recommendation,
+            "water_change_recommendation": water_change_recommendation,
+            "last_change": last_change,
+            "days_since_change": days_since_change
         }
     )
 
@@ -197,7 +277,7 @@ def add_test_page(request: Request, tank_id: int):
     )
 
 
-# SAVE WATER TEST
+# SAVE TEST
 @router.post("/add-test/{tank_id}")
 def add_test(
     tank_id: int,
