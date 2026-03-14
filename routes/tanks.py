@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+
 from database import SessionLocal
 import models
 
@@ -9,7 +10,6 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-# DASHBOARD
 @router.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request):
 
@@ -36,7 +36,6 @@ def dashboard(request: Request):
     )
 
 
-# CREATE TANK PAGE
 @router.get("/create-tank", response_class=HTMLResponse)
 def create_tank_page(request: Request):
 
@@ -46,7 +45,6 @@ def create_tank_page(request: Request):
     )
 
 
-# CREATE TANK
 @router.post("/create-tank")
 def create_tank(
     request: Request,
@@ -75,14 +73,8 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# TANK PAGE
 @router.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_page(request: Request, tank_id: int):
-
-    user_id = request.cookies.get("user_id")
-
-    if not user_id:
-        return RedirectResponse("/", status_code=303)
 
     db = SessionLocal()
 
@@ -90,25 +82,13 @@ def tank_page(request: Request, tank_id: int):
         models.Tank.id == tank_id
     ).first()
 
-    if not tank:
-        return RedirectResponse("/dashboard", status_code=303)
+    tests = db.query(models.WaterTest).filter(
+        models.WaterTest.tank_id == tank_id
+    ).all()
 
-    tests = []
-    changes = []
-
-    try:
-        tests = db.query(models.WaterTest).filter(
-            models.WaterTest.tank_id == tank_id
-        ).all()
-    except:
-        pass
-
-    try:
-        changes = db.query(models.WaterChange).filter(
-            models.WaterChange.tank_id == tank_id
-        ).all()
-    except:
-        pass
+    changes = db.query(models.WaterChange).filter(
+        models.WaterChange.tank_id == tank_id
+    ).all()
 
     return templates.TemplateResponse(
         "tank.html",
@@ -121,7 +101,6 @@ def tank_page(request: Request, tank_id: int):
     )
 
 
-# ADD TEST PAGE
 @router.get("/add-test/{tank_id}", response_class=HTMLResponse)
 def add_test_page(request: Request, tank_id: int):
 
@@ -134,7 +113,6 @@ def add_test_page(request: Request, tank_id: int):
     )
 
 
-# SAVE TEST
 @router.post("/add-test/{tank_id}")
 def add_test(
     tank_id: int,
@@ -147,25 +125,21 @@ def add_test(
 
     db = SessionLocal()
 
-    try:
-        test = models.WaterTest(
-            tank_id=tank_id,
-            ammonia=str(ammonia),
-            nitrite=str(nitrite),
-            nitrate=str(nitrate),
-            ph=str(ph),
-            temperature=str(temperature)
-        )
+    test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=str(ammonia),
+        nitrite=str(nitrite),
+        nitrate=str(nitrate),
+        ph=str(ph),
+        temperature=str(temperature)
+    )
 
-        db.add(test)
-        db.commit()
-    except:
-        pass
+    db.add(test)
+    db.commit()
 
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
 
 
-# WATER CHANGE PAGE
 @router.get("/water-change/{tank_id}", response_class=HTMLResponse)
 def water_change_page(request: Request, tank_id: int):
 
@@ -178,7 +152,6 @@ def water_change_page(request: Request, tank_id: int):
     )
 
 
-# SAVE WATER CHANGE
 @router.post("/water-change/{tank_id}")
 def add_water_change(
     tank_id: int,
@@ -187,41 +160,12 @@ def add_water_change(
 
     db = SessionLocal()
 
-    try:
-        change = models.WaterChange(
-            tank_id=tank_id,
-            percent=percent
-        )
+    change = models.WaterChange(
+        tank_id=tank_id,
+        percent=percent
+    )
 
-        db.add(change)
-        db.commit()
-    except:
-        pass
+    db.add(change)
+    db.commit()
 
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
-
-
-# DELETE TANK
-@router.post("/delete-tank/{tank_id}")
-def delete_tank(tank_id: int):
-
-    db = SessionLocal()
-
-    try:
-        db.query(models.WaterTest).filter(
-            models.WaterTest.tank_id == tank_id
-        ).delete()
-
-        db.query(models.WaterChange).filter(
-            models.WaterChange.tank_id == tank_id
-        ).delete()
-
-        db.query(models.Tank).filter(
-            models.Tank.id == tank_id
-        ).delete()
-
-        db.commit()
-    except:
-        pass
-
-    return RedirectResponse("/dashboard", status_code=303)
