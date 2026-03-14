@@ -1,13 +1,19 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from database import SessionLocal
+
+from database import engine
 import models
+
+from database import SessionLocal
 from routes import tanks
 
 app = FastAPI()
 
 templates = Jinja2Templates(directory="templates")
+
+# CREATE DATABASE TABLES AUTOMATICALLY
+models.Base.metadata.create_all(bind=engine)
 
 app.include_router(tanks.router)
 
@@ -24,63 +30,51 @@ def login_page(request: Request):
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
 
-    try:
+    db = SessionLocal()
 
-        if not username or not password:
-
-            return templates.TemplateResponse(
-                "login.html",
-                {
-                    "request": request,
-                    "error": "Something fishy going on please check username / password"
-                }
-            )
-
-        db = SessionLocal()
-
-        user = db.query(models.User).filter(
-            models.User.username == username
-        ).first()
-
-        # create default admin if none exists
-        if not user and username == "admin" and password == "admin":
-
-            new_user = models.User(
-                username="admin",
-                password="admin"
-            )
-
-            db.add(new_user)
-            db.commit()
-
-            user = new_user
-
-        if not user or user.password != password:
-
-            return templates.TemplateResponse(
-                "login.html",
-                {
-                    "request": request,
-                    "error": "Something fishy going on please check username / password"
-                }
-            )
-
-        response = RedirectResponse("/dashboard", status_code=303)
-
-        response.set_cookie("user_id", str(user.id))
-        response.set_cookie("username", user.username)
-
-        return response
-
-    except Exception as e:
+    if not username or not password:
 
         return templates.TemplateResponse(
             "login.html",
             {
                 "request": request,
-                "error": "Login system error – check server logs"
+                "error": "Something fishy going on please check username / password"
             }
         )
+
+    user = db.query(models.User).filter(
+        models.User.username == username
+    ).first()
+
+    # Create default admin if none exists
+    if not user and username == "admin" and password == "admin":
+
+        new_user = models.User(
+            username="admin",
+            password="admin"
+        )
+
+        db.add(new_user)
+        db.commit()
+
+        user = new_user
+
+    if not user or user.password != password:
+
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Something fishy going on please check username / password"
+            }
+        )
+
+    response = RedirectResponse("/dashboard", status_code=303)
+
+    response.set_cookie("user_id", str(user.id))
+    response.set_cookie("username", user.username)
+
+    return response
 
 
 @app.get("/logout")
