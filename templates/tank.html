@@ -18,9 +18,9 @@ padding:30px;
 .card{
 background:#0f172a;
 padding:20px;
-border-radius:10px;
-margin-bottom:20px;
-max-width:800px;
+border-radius:12px;
+margin-bottom:25px;
+max-width:900px;
 }
 
 button{
@@ -34,7 +34,7 @@ margin-right:10px;
 
 canvas{
 background:#020617;
-padding:10px;
+padding:15px;
 border-radius:10px;
 }
 
@@ -57,7 +57,7 @@ border-radius:10px;
 
 <div class="card">
 
-<h2>Water Parameters</h2>
+<h2>Water Chemistry Trends</h2>
 
 <canvas id="waterChart"></canvas>
 
@@ -68,43 +68,55 @@ border-radius:10px;
 
 const labels = {{ labels | tojson }}
 
+const ammonia = {{ ammonia | tojson }}
+const nitrite = {{ nitrite | tojson }}
+const nitrate = {{ nitrate | tojson }}
+const ph = {{ ph | tojson }}
+const temperature = {{ temperature | tojson }}
+
+
 const data = {
 labels: labels,
 datasets: [
 
 {
 label: "Ammonia",
-data: {{ ammonia | tojson }},
-borderColor: "red",
-tension: 0.3
+data: ammonia,
+borderColor: "#ef4444",
+backgroundColor: "rgba(239,68,68,0.2)",
+tension: 0.4
 },
 
 {
 label: "Nitrite",
-data: {{ nitrite | tojson }},
-borderColor: "orange",
-tension: 0.3
+data: nitrite,
+borderColor: "#f59e0b",
+backgroundColor: "rgba(245,158,11,0.2)",
+tension: 0.4
 },
 
 {
 label: "Nitrate",
-data: {{ nitrate | tojson }},
-borderColor: "green",
-tension: 0.3
+data: nitrate,
+borderColor: "#22c55e",
+backgroundColor: "rgba(34,197,94,0.2)",
+tension: 0.4
 },
 
 {
 label: "pH",
-data: {{ ph | tojson }},
-borderColor: "blue",
-tension: 0.3
+data: ph,
+borderColor: "#3b82f6",
+backgroundColor: "rgba(59,130,246,0.2)",
+tension: 0.4
 },
 
 {
 label: "Temperature",
-data: {{ temperature | tojson }},
-borderColor: "purple",
-tension: 0.3
+data: temperature,
+borderColor: "#a855f7",
+backgroundColor: "rgba(168,85,247,0.2)",
+tension: 0.4
 }
 
 ]
@@ -116,16 +128,29 @@ document.getElementById("waterChart"),
 type: "line",
 data: data,
 options: {
+
 responsive: true,
-plugins: {
-legend: {
-labels: { color: "white" }
+
+interaction:{
+mode:'index',
+intersect:false
+},
+
+plugins:{
+legend:{
+labels:{color:"white"}
 }
 },
-scales: {
-x: { ticks: { color: "white" } },
-y: { ticks: { color: "white" } }
+
+scales:{
+x:{
+ticks:{color:"white"}
+},
+y:{
+ticks:{color:"white"}
 }
+}
+
 }
 }
 )
