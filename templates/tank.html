@@ -4,8 +4,6 @@
 
 <title>AquaGuardian</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <style>
 
 body{
@@ -20,6 +18,7 @@ background:#0f172a;
 padding:20px;
 border-radius:10px;
 margin-bottom:20px;
+max-width:600px;
 }
 
 button{
@@ -31,24 +30,6 @@ cursor:pointer;
 margin-right:10px;
 }
 
-.progress-container{
-background:#1e293b;
-border-radius:10px;
-overflow:hidden;
-height:22px;
-margin-top:10px;
-}
-
-.progress-bar{
-background:#22c55e;
-height:100%;
-text-align:center;
-font-size:12px;
-line-height:22px;
-color:black;
-font-weight:bold;
-}
-
 </style>
 
 </head>
@@ -57,108 +38,73 @@ font-weight:bold;
 
 <h1>{{ tank.name }}</h1>
 
-
 <div class="card">
 
-<h3>Cycle Stage: {{ cycle_stage }}</h3>
+<h3>Tank Details</h3>
 
-<p>Cycle Progress: {{ cycle_progress }}%</p>
-
-<div class="progress-container">
-
-<div class="progress-bar" style="width: {{ cycle_progress }}%">
-
-{{ cycle_progress }}%
-
-</div>
-
-</div>
-
-<p><b>Tank Health:</b> {{ tank_health }}</p>
+<p>Volume: {{ tank.volume }}L</p>
+<p>Type: {{ tank.tank_type }}</p>
 
 </div>
 
 
 <div class="card">
 
-<p><b>Recommendation:</b> {{ recommendation }}</p>
+<h3>Actions</h3>
 
-{% if water_change_recommendation %}
+<a href="/add-test/{{ tank.id }}">
+<button>Log Water Test</button>
+</a>
 
-<p style="color:#38bdf8">
+<a href="/water-change/{{ tank.id }}">
+<button>Log Water Change</button>
+</a>
 
-Recommended Water Change:  
-<b>{{ water_change_recommendation }}%</b>
-
-</p>
-
-{% endif %}
+<a href="/dashboard">
+<button>Back</button>
+</a>
 
 </div>
 
 
 <div class="card">
 
-{% if last_change %}
+<h3>Water Tests</h3>
 
-<p>Last Water Change: {{ last_change }}%</p>
-<p>Days Since Change: {{ days_since_change }}</p>
-
+{% if tests %}
+<ul>
+{% for test in tests %}
+<li>
+Ammonia: {{ test.ammonia }} |
+Nitrite: {{ test.nitrite }} |
+Nitrate: {{ test.nitrate }} |
+pH: {{ test.ph }} |
+Temp: {{ test.temperature }}
+</li>
+{% endfor %}
+</ul>
 {% else %}
-
-<p>No water changes logged</p>
-
+<p>No water tests logged yet</p>
 {% endif %}
 
 </div>
 
 
-<a href="/dashboard"><button>Back</button></a>
+<div class="card">
 
-<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
+<h3>Water Changes</h3>
 
-<a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
+{% if changes %}
+<ul>
+{% for change in changes %}
+<li>{{ change.percent }}% water change</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No water changes logged yet</p>
+{% endif %}
 
-
-<br><br>
-
-<canvas id="cycleChart"></canvas>
-
-
-<script>
-
-const ammonia = {{ ammonia | tojson }};
-const nitrite = {{ nitrite | tojson }};
-const nitrate = {{ nitrate | tojson }};
-const labels = {{ dates | tojson }};
-
-const ctx = document.getElementById("cycleChart").getContext("2d");
-
-new Chart(ctx,{
-type:"line",
-data:{
-labels:labels,
-datasets:[
-{
-label:"Ammonia",
-data:ammonia,
-borderColor:"#ef4444"
-},
-{
-label:"Nitrite",
-data:nitrite,
-borderColor:"#3b82f6"
-},
-{
-label:"Nitrate",
-data:nitrate,
-borderColor:"#22c55e"
-}
-]
-}
-});
-
-</script>
+</div>
 
 </body>
 
