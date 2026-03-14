@@ -28,10 +28,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(
         "dashboard.html",
-        {
-            "request": request,
-            "tanks": tanks
-        }
+        {"request": request, "tanks": tanks}
     )
 
 
@@ -45,7 +42,7 @@ def create_tank_page(request: Request):
     )
 
 
-# SAVE TANK
+# CREATE TANK
 @router.post("/create-tank")
 def create_tank(
     name: str = Form(...),
@@ -53,10 +50,7 @@ def create_tank(
     db: Session = Depends(get_db)
 ):
 
-    tank = models.Tank(
-        name=name,
-        tank_type=tank_type
-    )
+    tank = models.Tank(name=name, tank_type=tank_type)
 
     db.add(tank)
     db.commit()
@@ -64,7 +58,7 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# TANK DETAIL
+# VIEW TANK
 @router.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
 
@@ -100,22 +94,19 @@ def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
     )
 
 
-# ADD WATER TEST PAGE
+# WATER TEST PAGE
 @router.get("/add-test/{tank_id}", response_class=HTMLResponse)
 def add_test_page(request: Request, tank_id: int):
 
     return templates.TemplateResponse(
         "add_test.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
+        {"request": request, "tank_id": tank_id}
     )
 
 
 # SAVE WATER TEST
 @router.post("/add-test/{tank_id}")
-def add_test(
+def save_test(
     tank_id: int,
     ammonia: float = Form(...),
     nitrite: float = Form(...),
@@ -125,7 +116,7 @@ def add_test(
     db: Session = Depends(get_db)
 ):
 
-    test = models.WaterTest(
+    new_test = models.WaterTest(
         tank_id=tank_id,
         ammonia=ammonia,
         nitrite=nitrite,
@@ -134,7 +125,7 @@ def add_test(
         temperature=temperature
     )
 
-    db.add(test)
+    db.add(new_test)
     db.commit()
 
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
@@ -146,10 +137,7 @@ def water_change_page(request: Request, tank_id: int):
 
     return templates.TemplateResponse(
         "water_change.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
+        {"request": request, "tank_id": tank_id}
     )
 
 
