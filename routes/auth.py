@@ -15,44 +15,53 @@ def login_page(request: Request):
 
     return templates.TemplateResponse(
         "login.html",
-        {"request": request}
+        {"request": request, "error": None}
     )
 
 
 @router.post("/login")
-def login(request: Request, username: str = Form(""), password: str = Form("")):
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
 
-    if username.strip() == "" or password.strip() == "":
+    db = SessionLocal()
+
+    if not username or not password:
 
         return templates.TemplateResponse(
             "login.html",
             {
                 "request": request,
-                "error": "something fishy going on please check username / password"
+                "error": "Something fishy going on please check username / password"
             }
         )
-
-    db = SessionLocal()
 
     user = db.query(models.User).filter(
         models.User.username == username
     ).first()
 
-    if not user:
+    if not user and username == "admin" and password == "admin":
 
         user = models.User(
-            username=username,
-            password=password
+            username="admin",
+            password="admin"
         )
 
         db.add(user)
         db.commit()
-        db.refresh(user)
+
+    if not user or user.password != password:
+
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Something fishy going on please check username / password"
+            }
+        )
 
     response = RedirectResponse("/dashboard", status_code=303)
 
     response.set_cookie("user_id", str(user.id))
-    response.set_cookie("username", username)
+    response.set_cookie("username", user.username)
 
     return response
 
