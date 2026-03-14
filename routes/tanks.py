@@ -1,250 +1,87 @@
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+<html>
 
-from database import SessionLocal
-import models
-from datetime import datetime
+<head>
 
-router = APIRouter()
+<title>AquaGuardian</title>
 
-templates = Jinja2Templates(directory="templates")
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<style>
 
-# DASHBOARD
-@router.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request):
+body{
+background:#020617;
+color:white;
+font-family:Arial;
+padding:30px;
+}
 
-    user_id = request.cookies.get("user_id")
-    username = request.cookies.get("username")
+.card{
+background:#0f172a;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
 
-    if not user_id:
-        return RedirectResponse("/", status_code=303)
+button{
+background:#38bdf8;
+border:none;
+padding:10px;
+border-radius:6px;
+cursor:pointer;
+}
 
-    db = SessionLocal()
+</style>
 
-    tanks = db.query(models.Tank).filter(
-        models.Tank.owner_id == int(user_id)
-    ).all()
+</head>
 
-    return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": request,
-            "username": username,
-            "tanks": tanks
-        }
-    )
+<body>
 
+<h1>{{ tank.name }}</h1>
 
-# CREATE TANK PAGE
-@router.get("/create-tank", response_class=HTMLResponse)
-def create_tank_page(request: Request):
+<div class="card">
 
-    return templates.TemplateResponse(
-        "create_tank.html",
-        {"request": request}
-    )
+<h3>Cycle Stage: {{ cycle_stage }}</h3>
+<p>Cycle Progress: {{ cycle_progress }}%</p>
+<p>Tank Health: {{ tank_health }}</p>
 
+</div>
 
-# CREATE TANK
-@router.post("/create-tank")
-def create_tank(
-    request: Request,
-    name: str = Form(...),
-    volume: int = Form(...)
-):
+<div class="card">
 
-    user_id = request.cookies.get("user_id")
+<p><b>Recommendation:</b> {{ recommendation }}</p>
 
-    if not user_id:
-        return RedirectResponse("/", status_code=303)
+</div>
 
-    db = SessionLocal()
+<a href="/dashboard"><button>Back</button></a>
+<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
 
-    tank = models.Tank(
-        name=name,
-        volume=volume,
-        owner_id=int(user_id)
-    )
+<br><br>
 
-    db.add(tank)
-    db.commit()
+<canvas id="cycleChart"></canvas>
 
-    return RedirectResponse("/dashboard", status_code=303)
+<script>
 
+const ammonia = {{ ammonia | tojson }};
+const nitrite = {{ nitrite | tojson }};
+const nitrate = {{ nitrate | tojson }};
+const labels = {{ dates | tojson }};
 
-# DELETE TANK
-@router.get("/delete-tank/{tank_id}")
-def delete_tank(tank_id: int):
+const ctx = document.getElementById("cycleChart").getContext("2d");
 
-    db = SessionLocal()
+new Chart(ctx,{
+type:"line",
+data:{
+labels:labels,
+datasets:[
+{label:"Ammonia",data:ammonia,borderColor:"#ef4444"},
+{label:"Nitrite",data:nitrite,borderColor:"#3b82f6"},
+{label:"Nitrate",data:nitrate,borderColor:"#22c55e"}
+]
+}
+});
 
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
+</script>
 
-    if tank:
-        db.delete(tank)
-        db.commit()
+</body>
 
-    return RedirectResponse("/dashboard", status_code=303)
-
-
-# VIEW TANK
-@router.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_page(request: Request, tank_id: int):
-
-    db = SessionLocal()
-
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
-
-    tests = db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
-    ).all()
-
-    ammonia = []
-    nitrite = []
-    nitrate = []
-    dates = []
-
-    for t in tests:
-        try:
-            ammonia.append(float(t.ammonia))
-            nitrite.append(float(t.nitrite))
-            nitrate.append(float(t.nitrate))
-            dates.append(t.created.strftime("%d %b"))
-        except:
-            pass
-
-    cycle_stage = "Unknown"
-    cycle_progress = 0
-    tank_health = "Unknown"
-    recommendation = "Add water test data"
-
-    if tests:
-
-        latest = tests[-1]
-
-        try:
-
-            a = float(latest.ammonia)
-            ni = float(latest.nitrite)
-            na = float(latest.nitrate)
-
-            # Stage detection
-
-            if a > 0.5 and ni == 0:
-                cycle_stage = "Ammonia Spike"
-                cycle_progress = 20
-
-            elif ni > 0.5:
-                cycle_stage = "Nitrite Spike"
-                cycle_progress = 60
-
-            elif na > 5 and a == 0 and ni == 0:
-                cycle_stage = "Cycle Complete"
-                cycle_progress = 100
-
-            elif na > 0:
-                cycle_stage = "Nitrate Rising"
-                cycle_progress = 80
-
-            # Health calculation
-
-            health_score = 100
-
-            if a > 0.25:
-                health_score -= 40
-
-            if ni > 0.25:
-                health_score -= 30
-
-            if na > 40:
-                health_score -= 20
-
-            if health_score >= 80:
-                tank_health = "Excellent"
-
-            elif health_score >= 60:
-                tank_health = "Good"
-
-            elif health_score >= 40:
-                tank_health = "Warning"
-
-            else:
-                tank_health = "Danger"
-
-            # Recommendation
-
-            if a > 0.5 or ni > 0.5:
-                recommendation = "Avoid water change unless emergency — bacteria establishing"
-
-            elif na > 40:
-                recommendation = "Perform 25% water change"
-
-            else:
-                recommendation = "Tank stable"
-
-        except:
-            pass
-
-    return templates.TemplateResponse(
-        "tank.html",
-        {
-            "request": request,
-            "tank": tank,
-            "ammonia": ammonia,
-            "nitrite": nitrite,
-            "nitrate": nitrate,
-            "dates": dates,
-            "cycle_stage": cycle_stage,
-            "cycle_progress": cycle_progress,
-            "tank_health": tank_health,
-            "recommendation": recommendation
-        }
-    )
-
-
-# LOG WATER TEST PAGE
-@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
-def add_test_page(request: Request, tank_id: int):
-
-    return templates.TemplateResponse(
-        "add_test.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
-    )
-
-
-# SAVE WATER TEST
-@router.post("/add-test/{tank_id}")
-def add_test(
-    tank_id: int,
-    ammonia: str = Form(...),
-    nitrite: str = Form(...),
-    nitrate: str = Form(...),
-    ph: str = Form(...),
-    temperature: str = Form(...)
-):
-
-    db = SessionLocal()
-
-    test = models.WaterTest(
-        tank_id=tank_id,
-        ammonia=ammonia,
-        nitrite=nitrite,
-        nitrate=nitrate,
-        ph=ph,
-        temperature=temperature,
-        created=datetime.utcnow()
-    )
-
-    db.add(test)
-    db.commit()
-
-    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+</html>
