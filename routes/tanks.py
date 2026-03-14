@@ -12,7 +12,7 @@ from services.analytics import (
     nitrate_spike,
     ammonia_warning,
     temperature_alert,
-    recommend_water_change,
+    adjusted_water_change_recommendation,
     tank_health_score
 )
 
@@ -76,13 +76,15 @@ def tank_detail(tank_id: int, request: Request, db: Session = Depends(get_db)):
 
     progress = cycle_progress(tests)
 
-    nitrate_alert = nitrate_spike(tests)
-
     ammonia_alert = ammonia_warning(tests)
 
     temp_alert = temperature_alert(tests)
 
-    recommendation = recommend_water_change(tests)
+    nitrate_values = [t.nitrate for t in tests if t.nitrate is not None]
+
+    nitrate_alert = nitrate_spike(nitrate_values)
+
+    recommendation = adjusted_water_change_recommendation(tests, water_changes)
 
     health = tank_health_score(tests)
 
