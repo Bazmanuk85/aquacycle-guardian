@@ -60,6 +60,20 @@ def create_tank(name: str = Form(...), tank_type: str = Form(...), db: Session =
     return RedirectResponse("/dashboard", status_code=303)
 
 
+@router.post("/delete-tank/{tank_id}")
+def delete_tank(tank_id: int, db: Session = Depends(get_db)):
+
+    tank = db.query(Tank).filter(Tank.id == tank_id).first()
+
+    if tank:
+        db.query(WaterTest).filter(WaterTest.tank_id == tank_id).delete()
+        db.query(WaterChange).filter(WaterChange.tank_id == tank_id).delete()
+        db.delete(tank)
+        db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
+
+
 @router.get("/tank/{tank_id}")
 def tank_detail(tank_id: int, request: Request, db: Session = Depends(get_db)):
 
