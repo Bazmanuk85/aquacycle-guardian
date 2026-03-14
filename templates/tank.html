@@ -147,7 +147,7 @@ background:#22c55e;
 
 <h3>Water Change Recommendation</h3>
 
-{% if recommendation > 0 %}
+{% if recommendation and recommendation > 0 %}
 
 <p>Recommended water change: <b>{{recommendation}}%</b></p>
 
