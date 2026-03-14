@@ -16,40 +16,29 @@ align-items:center;
 height:100vh;
 }
 
-.container{
-display:flex;
-width:700px;
-}
-
-.login{
+.login-box{
 background:#0f172a;
 padding:40px;
 border-radius:10px;
-width:50%;
-}
-
-.brand{
-display:flex;
-align-items:center;
-justify-content:center;
-font-size:36px;
-font-weight:bold;
-width:50%;
-color:#38bdf8;
+width:300px;
 }
 
 input{
 width:100%;
 padding:10px;
-margin-bottom:10px;
+margin-top:10px;
+margin-bottom:15px;
+border-radius:5px;
+border:none;
 }
 
 button{
+width:100%;
+padding:10px;
 background:#38bdf8;
 border:none;
-padding:10px;
 border-radius:6px;
-width:100%;
+cursor:pointer;
 }
 
 .error{
@@ -58,23 +47,27 @@ margin-top:10px;
 font-size:14px;
 }
 
+.title{
+text-align:center;
+font-size:22px;
+margin-bottom:20px;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<div class="container">
+<div class="login-box">
 
-<div class="login">
+<div class="title">AquaGuardian</div>
 
-<h2>Login</h2>
-
-<form action="/login" method="post">
+<form method="post" action="/login">
 
 <input name="username" placeholder="Username">
 
-<input name="password" type="password" placeholder="Password">
+<input type="password" name="password" placeholder="Password">
 
 <button type="submit">Login</button>
 
@@ -82,21 +75,9 @@ font-size:14px;
 
 {% if error %}
 
-<div class="error">
-
-{{ error }}
-
-</div>
+<div class="error">{{ error }}</div>
 
 {% endif %}
-
-</div>
-
-<div class="brand">
-
-AquaGuardian
-
-</div>
 
 </div>
 
