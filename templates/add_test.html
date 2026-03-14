@@ -13,19 +13,18 @@ font-family:Arial;
 padding:30px;
 }
 
-.container{
-max-width:500px;
-margin:auto;
+.card{
 background:#0f172a;
-padding:30px;
+padding:20px;
 border-radius:10px;
+max-width:400px;
 }
 
 input{
 width:100%;
 padding:10px;
 margin-bottom:15px;
-border-radius:5px;
+border-radius:6px;
 border:none;
 }
 
@@ -35,12 +34,6 @@ border:none;
 padding:10px;
 border-radius:6px;
 cursor:pointer;
-width:100%;
-}
-
-a{
-color:#38bdf8;
-text-decoration:none;
 }
 
 </style>
@@ -49,36 +42,30 @@ text-decoration:none;
 
 <body>
 
-<h1>AquaGuardian</h1>
+<h1>Log Water Test</h1>
 
-<div class="container">
-
-<h2>Log Water Test</h2>
+<div class="card">
 
 <form method="post" action="/add-test/{{ tank_id }}">
 
 <label>Ammonia (ppm)</label>
-<input type="text" name="ammonia" required>
+<input type="number" step="0.01" name="ammonia" required>
 
 <label>Nitrite (ppm)</label>
-<input type="text" name="nitrite" required>
+<input type="number" step="0.01" name="nitrite" required>
 
 <label>Nitrate (ppm)</label>
-<input type="text" name="nitrate" required>
+<input type="number" step="0.01" name="nitrate" required>
 
 <label>pH</label>
-<input type="text" name="ph" required>
+<input type="number" step="0.1" name="ph" required>
 
-<label>Temperature (°C)</label>
-<input type="text" name="temperature" required>
+<label>Temperature °C</label>
+<input type="number" step="0.1" name="temperature" required>
 
-<button type="submit">Save Water Test</button>
+<button type="submit">Save Test</button>
 
 </form>
-
-<br>
-
-<a href="/tank/{{ tank_id }}">← Back to Tank</a>
 
 </div>
 
