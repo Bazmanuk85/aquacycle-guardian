@@ -40,22 +40,20 @@ cursor:pointer;
 
 <div class="card">
 
-{% if last_change %}
+<h3>Cycle Stage: {{ cycle_stage }}</h3>
+<p>Cycle Progress: {{ cycle_progress }}%</p>
+<p>Tank Health: {{ tank_health }}</p>
 
-<p>Last Water Change: {{ last_change }}%</p>
-<p>Days Since Change: {{ days_since_change }}</p>
+</div>
 
-{% else %}
+<div class="card">
 
-<p>No water changes logged yet</p>
-
-{% endif %}
+<p><b>Recommendation:</b> {{ recommendation }}</p>
 
 </div>
 
 <a href="/dashboard"><button>Back</button></a>
 <a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
-<a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
 
 <br><br>
 
