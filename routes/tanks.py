@@ -18,7 +18,7 @@ def dashboard(request: Request):
     username = request.cookies.get("username")
 
     if not user_id:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse(url="/", status_code=303)
 
     db = SessionLocal()
 
@@ -26,43 +26,12 @@ def dashboard(request: Request):
         models.Tank.owner_id == int(user_id)
     ).all()
 
-    tank_data = []
-
-    for tank in tanks:
-
-        tests = db.query(models.WaterTest).filter(
-            models.WaterTest.tank_id == tank.id
-        ).all()
-
-        health = 100
-
-        if tests:
-
-            last = tests[-1]
-
-            try:
-                if float(last.ammonia) > 0:
-                    health -= 40
-
-                if float(last.nitrite) > 0:
-                    health -= 30
-
-                if float(last.nitrate) > 40:
-                    health -= 20
-            except:
-                pass
-
-        tank_data.append({
-            "tank": tank,
-            "health": health
-        })
-
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
             "username": username,
-            "tank_data": tank_data
+            "tanks": tanks
         }
     )
 
@@ -84,21 +53,22 @@ def create_tank(request: Request, name: str = Form(...), volume: int = Form(...)
     user_id = request.cookies.get("user_id")
 
     if not user_id:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse(url="/", status_code=303)
 
     db = SessionLocal()
 
-    tank = models.Tank(
+    new_tank = models.Tank(
         name=name,
         volume=volume,
         owner_id=int(user_id)
     )
 
-    db.add(tank)
+    db.add(new_tank)
     db.commit()
-    db.refresh(tank)
 
-    return RedirectResponse("/dashboard", status_code=303)
+    response = RedirectResponse(url="/dashboard", status_code=303)
+
+    return response
 
 
 # DELETE TANK
@@ -108,7 +78,7 @@ def delete_tank(request: Request, tank_id: int):
     user_id = request.cookies.get("user_id")
 
     if not user_id:
-        return RedirectResponse("/", status_code=303)
+        return RedirectResponse(url="/", status_code=303)
 
     db = SessionLocal()
 
@@ -120,4 +90,4 @@ def delete_tank(request: Request, tank_id: int):
         db.delete(tank)
         db.commit()
 
-    return RedirectResponse("/dashboard", status_code=303)
+    return RedirectResponse(url="/dashboard", status_code=303)
