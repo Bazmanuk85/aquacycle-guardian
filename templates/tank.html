@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>{{ tank.name }} - AquaGuardian</title>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<head>
+
+<title>AquaGuardian Tank</title>
 
 <style>
 
@@ -12,19 +12,17 @@ font-family:Arial;
 background:#0f172a;
 color:white;
 margin:0;
-padding:30px;
+}
+
+.navbar{
+background:#1e293b;
+padding:15px 30px;
+display:flex;
+justify-content:space-between;
 }
 
 .container{
-max-width:1000px;
-margin:auto;
-}
-
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-margin-bottom:30px;
+padding:30px;
 }
 
 .card{
@@ -34,11 +32,32 @@ border-radius:10px;
 margin-bottom:20px;
 }
 
+.alert{
+background:#7f1d1d;
+padding:10px;
+border-radius:6px;
+margin-bottom:10px;
+}
+
+.warning{
+background:#78350f;
+padding:10px;
+border-radius:6px;
+margin-bottom:10px;
+}
+
+.good{
+background:#14532d;
+padding:10px;
+border-radius:6px;
+margin-bottom:10px;
+}
+
 button{
-padding:10px 18px;
+padding:8px 16px;
+background:#3b82f6;
 border:none;
 border-radius:6px;
-background:#3b82f6;
 color:white;
 cursor:pointer;
 }
@@ -47,30 +66,17 @@ button:hover{
 background:#2563eb;
 }
 
-.progress{
-background:#334155;
-border-radius:10px;
+.healthbar{
 height:20px;
+background:#334155;
+border-radius:6px;
 overflow:hidden;
 margin-top:10px;
 }
 
-.progress-bar{
+.healthfill{
+height:100%;
 background:#22c55e;
-height:20px;
-}
-
-.alert{
-color:#f87171;
-}
-
-.recommend{
-color:#60a5fa;
-}
-
-.health{
-font-size:28px;
-font-weight:bold;
 }
 
 </style>
@@ -79,45 +85,37 @@ font-weight:bold;
 
 <body>
 
-<div class="container">
-
-<div class="header">
-<h1>{{ tank.name }}</h1>
+<div class="navbar">
+<div><b>AquaGuardian</b></div>
 
 <div>
-<a href="/dashboard"><button>Back</button></a>
+<a href="/dashboard"><button>Dashboard</button></a>
+<a href="/logout"><button>Logout</button></a>
 </div>
 </div>
 
-<div class="card">
+<div class="container">
 
-<h3>Nitrogen Cycle Status</h3>
-
-<p>{{ cycle_stage }}</p>
-
-<div class="progress">
-<div class="progress-bar" style="width: {{ cycle_percent }}%"></div>
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h3>Water Parameters</h3>
-
-<canvas id="waterChart"></canvas>
-
-</div>
-
+<h2>{{ tank.name }}</h2>
 
 <div class="card">
 
 <h3>Tank Health Score</h3>
 
-<div class="health">
-{{ health_score }}%
+<div class="healthbar">
+<div class="healthfill" style="width: {{health}}%"></div>
 </div>
+
+<p>{{health}} / 100</p>
+
+</div>
+
+
+<div class="card">
+
+<h3>Cycle Status</h3>
+
+<p>{{cycle}}</p>
 
 </div>
 
@@ -126,14 +124,20 @@ font-weight:bold;
 
 <h3>Alerts</h3>
 
-{% if alerts %}
-<ul>
-{% for a in alerts %}
-<li class="alert">{{ a }}</li>
-{% endfor %}
-</ul>
-{% else %}
-<p>No alerts detected</p>
+{% if ammonia_alert %}
+<div class="alert">{{ammonia_alert}}</div>
+{% endif %}
+
+{% if nitrate_alert %}
+<div class="warning">{{nitrate_alert}}</div>
+{% endif %}
+
+{% if temp_alert %}
+<div class="warning">{{temp_alert}}</div>
+{% endif %}
+
+{% if not ammonia_alert and not nitrate_alert and not temp_alert %}
+<div class="good">No active alerts</div>
 {% endif %}
 
 </div>
@@ -141,16 +145,16 @@ font-weight:bold;
 
 <div class="card">
 
-<h3>Recommendations</h3>
+<h3>Water Change Recommendation</h3>
 
-{% if recommendations %}
-<ul>
-{% for r in recommendations %}
-<li class="recommend">{{ r }}</li>
-{% endfor %}
-</ul>
+{% if recommendation > 0 %}
+
+<p>Recommended water change: <b>{{recommendation}}%</b></p>
+
 {% else %}
-<p>No recommendations</p>
+
+<p>No water change needed</p>
+
 {% endif %}
 
 </div>
@@ -158,75 +162,25 @@ font-weight:bold;
 
 <div class="card">
 
-<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
-<a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
+<h3>Actions</h3>
+
+<a href="/add-test/{{tank.id}}">
+<button>Log Water Test</button>
+</a>
+
+<a href="/water-change/{{tank.id}}">
+<button>Log Water Change</button>
+</a>
+
+<br><br>
+
+<a href="/dashboard">
+<button>Back</button>
+</a>
 
 </div>
 
 </div>
-
-
-<script>
-
-const labels = [
-{% for t in tests %}
-"{{ t.date }}",
-{% endfor %}
-]
-
-const ammonia = [
-{% for t in tests %}
-{{ t.ammonia }},
-{% endfor %}
-]
-
-const nitrite = [
-{% for t in tests %}
-{{ t.nitrite }},
-{% endfor %}
-]
-
-const nitrate = [
-{% for t in tests %}
-{{ t.nitrate }},
-{% endfor %}
-]
-
-new Chart(document.getElementById("waterChart"), {
-
-type:"line",
-
-data:{
-labels:labels,
-datasets:[
-
-{
-label:"Ammonia",
-data:ammonia,
-borderColor:"red",
-tension:0.4
-},
-
-{
-label:"Nitrite",
-data:nitrite,
-borderColor:"orange",
-tension:0.4
-},
-
-{
-label:"Nitrate",
-data:nitrate,
-borderColor:"green",
-tension:0.4
-}
-
-]
-}
-
-})
-
-</script>
 
 </body>
 </html>
