@@ -4,6 +4,8 @@
 
 <title>AquaGuardian</title>
 
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
 
 body{
@@ -18,7 +20,7 @@ background:#0f172a;
 padding:20px;
 border-radius:10px;
 margin-bottom:20px;
-max-width:600px;
+max-width:800px;
 }
 
 button{
@@ -28,6 +30,12 @@ padding:10px;
 border-radius:6px;
 cursor:pointer;
 margin-right:10px;
+}
+
+canvas{
+background:#020617;
+padding:10px;
+border-radius:10px;
 }
 
 </style>
@@ -40,71 +48,89 @@ margin-right:10px;
 
 <div class="card">
 
-<h3>Tank Details</h3>
-
-<p>Volume: {{ tank.volume }}L</p>
-<p>Type: {{ tank.tank_type }}</p>
-
-</div>
-
-
-<div class="card">
-
-<h3>Actions</h3>
-
-<a href="/add-test/{{ tank.id }}">
-<button>Log Water Test</button>
-</a>
-
-<a href="/water-change/{{ tank.id }}">
-<button>Log Water Change</button>
-</a>
-
-<a href="/dashboard">
-<button>Back</button>
-</a>
+<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
+<a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
+<a href="/dashboard"><button>Back</button></a>
 
 </div>
 
 
 <div class="card">
 
-<h3>Water Tests</h3>
+<h2>Water Parameters</h2>
 
-{% if tests %}
-<ul>
-{% for test in tests %}
-<li>
-Ammonia: {{ test.ammonia }} |
-Nitrite: {{ test.nitrite }} |
-Nitrate: {{ test.nitrate }} |
-pH: {{ test.ph }} |
-Temp: {{ test.temperature }}
-</li>
-{% endfor %}
-</ul>
-{% else %}
-<p>No water tests logged yet</p>
-{% endif %}
+<canvas id="waterChart"></canvas>
 
 </div>
 
 
-<div class="card">
+<script>
 
-<h3>Water Changes</h3>
+const labels = {{ labels | tojson }}
 
-{% if changes %}
-<ul>
-{% for change in changes %}
-<li>{{ change.percent }}% water change</li>
-{% endfor %}
-</ul>
-{% else %}
-<p>No water changes logged yet</p>
-{% endif %}
+const data = {
+labels: labels,
+datasets: [
 
-</div>
+{
+label: "Ammonia",
+data: {{ ammonia | tojson }},
+borderColor: "red",
+tension: 0.3
+},
+
+{
+label: "Nitrite",
+data: {{ nitrite | tojson }},
+borderColor: "orange",
+tension: 0.3
+},
+
+{
+label: "Nitrate",
+data: {{ nitrate | tojson }},
+borderColor: "green",
+tension: 0.3
+},
+
+{
+label: "pH",
+data: {{ ph | tojson }},
+borderColor: "blue",
+tension: 0.3
+},
+
+{
+label: "Temperature",
+data: {{ temperature | tojson }},
+borderColor: "purple",
+tension: 0.3
+}
+
+]
+}
+
+new Chart(
+document.getElementById("waterChart"),
+{
+type: "line",
+data: data,
+options: {
+responsive: true,
+plugins: {
+legend: {
+labels: { color: "white" }
+}
+},
+scales: {
+x: { ticks: { color: "white" } },
+y: { ticks: { color: "white" } }
+}
+}
+}
+)
+
+</script>
 
 </body>
 
