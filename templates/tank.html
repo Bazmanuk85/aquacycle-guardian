@@ -1,148 +1,39 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>{{ tank.name }} - AquaGuardian</title>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<style>
-body{
-font-family:Arial;
-background:#0f172a;
-color:white;
-padding:30px;
-}
-
-.container{
-max-width:900px;
-margin:auto;
-}
-
-.card{
-background:#1e293b;
-padding:20px;
-border-radius:10px;
-margin-bottom:20px;
-}
-
-button{
-padding:10px 16px;
-border:none;
-border-radius:6px;
-background:#3b82f6;
-color:white;
-cursor:pointer;
-margin-right:10px;
-}
-
-button:hover{
-background:#2563eb;
-}
-
-.progress{
-background:#334155;
-border-radius:10px;
-height:20px;
-overflow:hidden;
-}
-
-.progress-bar{
-background:#22c55e;
-height:20px;
-}
-</style>
-
-</head>
-<body>
-
-<div class="container">
-
-<h1>{{ tank.name }}</h1>
-
 <div class="card">
 
-<h3>Nitrogen Cycle Status</h3>
+<h3>Tank Health Score</h3>
 
-<p>{{ cycle_stage }}</p>
-
-<div class="progress">
-<div class="progress-bar" style="width: {{ cycle_percent }}%"></div>
-</div>
+<h1>{{ health_score }}%</h1>
 
 </div>
 
 <div class="card">
 
-<h3>Water Test Graph</h3>
+<h3>Alerts</h3>
 
-<canvas id="waterChart"></canvas>
+{% if alerts %}
+<ul>
+{% for alert in alerts %}
+<li>{{ alert }}</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No alerts detected</p>
+{% endif %}
 
 </div>
 
 <div class="card">
 
-<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
-<a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
-<a href="/dashboard"><button>Back</button></a>
+<h3>Recommendations</h3>
+
+{% if recommendations %}
+<ul>
+{% for r in recommendations %}
+<li>{{ r }}</li>
+{% endfor %}
+</ul>
+{% else %}
+<p>No recommendations</p>
+{% endif %}
 
 </div>
-
-</div>
-
-<script>
-
-const labels = [
-{% for t in tests %}
-"{{ t.date }}",
-{% endfor %}
-]
-
-const ammonia = [
-{% for t in tests %}
-{{ t.ammonia }},
-{% endfor %}
-]
-
-const nitrite = [
-{% for t in tests %}
-{{ t.nitrite }},
-{% endfor %}
-]
-
-const nitrate = [
-{% for t in tests %}
-{{ t.nitrate }},
-{% endfor %}
-]
-
-new Chart(document.getElementById("waterChart"), {
-type: "line",
-data: {
-labels: labels,
-datasets: [
-{
-label: "Ammonia",
-data: ammonia,
-borderColor: "red",
-tension: 0.4
-},
-{
-label: "Nitrite",
-data: nitrite,
-borderColor: "orange",
-tension: 0.4
-},
-{
-label: "Nitrate",
-data: nitrate,
-borderColor: "green",
-tension: 0.4
-}
-]
-}
-})
-
-</script>
-
-</body>
-</html>
