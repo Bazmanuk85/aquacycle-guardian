@@ -15,6 +15,13 @@ font-family:Arial;
 padding:30px;
 }
 
+.card{
+background:#0f172a;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
 button{
 background:#38bdf8;
 border:none;
@@ -31,14 +38,17 @@ cursor:pointer;
 
 <h1>{{ tank.name }}</h1>
 
-<p>{{ tank.volume }}L Aquarium</p>
+<div class="card">
+
+<h3>Tank Health: {{ health }}%</h3>
+<p>Cycle Stage: {{ stage }}</p>
+
+</div>
 
 <a href="/dashboard"><button>Back</button></a>
 <a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
 
 <br><br>
-
-<h2>Nitrogen Cycle</h2>
 
 <canvas id="cycleChart"></canvas>
 
@@ -52,48 +62,15 @@ const labels = {{ dates | tojson }};
 const ctx = document.getElementById("cycleChart").getContext("2d");
 
 new Chart(ctx,{
-    type: "line",
-    data: {
-        labels: labels,
-        datasets: [
-            {
-                label: "Ammonia",
-                data: ammonia,
-                borderColor: "#ef4444",
-                tension: 0.3
-            },
-            {
-                label: "Nitrite",
-                data: nitrite,
-                borderColor: "#3b82f6",
-                tension: 0.3
-            },
-            {
-                label: "Nitrate",
-                data: nitrate,
-                borderColor: "#22c55e",
-                tension: 0.3
-            }
-        ]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                labels: {
-                    color: "white"
-                }
-            }
-        },
-        scales: {
-            x: {
-                ticks: { color: "white" }
-            },
-            y: {
-                ticks: { color: "white" }
-            }
-        }
-    }
+type:"line",
+data:{
+labels:labels,
+datasets:[
+{label:"Ammonia",data:ammonia,borderColor:"#ef4444"},
+{label:"Nitrite",data:nitrite,borderColor:"#3b82f6"},
+{label:"Nitrate",data:nitrate,borderColor:"#22c55e"}
+]
+}
 });
 
 </script>
