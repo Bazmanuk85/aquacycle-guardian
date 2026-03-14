@@ -1,14 +1,22 @@
-from fastapi import APIRouter, Request, Form, Depends, HTTPException
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi import APIRouter, Request, Form, Depends
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
-
-from database import SessionLocal
-import models
 from fastapi.templating import Jinja2Templates
 
-from services.analytics import detect_cycle_stage, analyze_water_quality
+from database import SessionLocal
+from models import Tank, WaterTest, WaterChange
+
+from services.analytics import (
+    detect_cycle_stage,
+    nitrate_spike,
+    ammonia_warning,
+    temperature_alert,
+    recommend_water_change,
+    tank_health_score
+)
 
 router = APIRouter()
+
 templates = Jinja2Templates(directory="templates")
 
 
@@ -20,20 +28,29 @@ def get_db():
         db.close()
 
 
-# DASHBOARD
-@router.get("/dashboard", response_class=HTMLResponse)
+# ----------------------------
+# Dashboard
+# ----------------------------
+
+@router.get("/dashboard")
 def dashboard(request: Request, db: Session = Depends(get_db)):
 
-    tanks = db.query(models.Tank).all()
+    tanks = db.query(Tank).all()
 
     return templates.TemplateResponse(
         "dashboard.html",
-        {"request": request, "tanks": tanks}
+        {
+            "request": request,
+            "tanks": tanks
+        }
     )
 
 
-# CREATE TANK PAGE
-@router.get("/create-tank", response_class=HTMLResponse)
+# ----------------------------
+# Create Tank
+# ----------------------------
+
+@router.get("/create-tank")
 def create_tank_page(request: Request):
 
     return templates.TemplateResponse(
@@ -42,7 +59,6 @@ def create_tank_page(request: Request):
     )
 
 
-# CREATE TANK
 @router.post("/create-tank")
 def create_tank(
     name: str = Form(...),
@@ -50,7 +66,10 @@ def create_tank(
     db: Session = Depends(get_db)
 ):
 
-    tank = models.Tank(name=name, tank_type=tank_type)
+    tank = Tank(
+        name=name,
+        tank_type=tank_type
+    )
 
     db.add(tank)
     db.commit()
@@ -58,25 +77,36 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# VIEW TANK
-@router.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
+# ----------------------------
+# Tank Page
+# ----------------------------
 
-    tank = db.query(models.Tank).filter(models.Tank.id == tank_id).first()
+@router.get("/tank/{tank_id}")
+def tank_detail(
+    tank_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
 
-    if not tank:
-        raise HTTPException(status_code=404, detail="Tank not found")
+    tank = db.query(Tank).filter(Tank.id == tank_id).first()
 
-    tests = db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
+    tests = db.query(WaterTest).filter(
+        WaterTest.tank_id == tank_id
     ).all()
 
-    water_changes = db.query(models.WaterChange).filter(
-        models.WaterChange.tank_id == tank_id
+    water_changes = db.query(WaterChange).filter(
+        WaterChange.tank_id == tank_id
     ).all()
 
-    cycle_stage, cycle_percent = detect_cycle_stage(tests)
-    alerts, recommendations, health_score = analyze_water_quality(tests)
+    cycle = detect_cycle_stage(tests)
+
+    nitrate_alert = nitrate_spike(tests)
+    ammonia_alert = ammonia_warning(tests)
+    temp_alert = temperature_alert(tests)
+
+    recommendation = recommend_water_change(tests)
+
+    health = tank_health_score(tests)
 
     return templates.TemplateResponse(
         "tank.html",
@@ -85,76 +115,101 @@ def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
             "tank": tank,
             "tests": tests,
             "water_changes": water_changes,
-            "cycle_stage": cycle_stage,
-            "cycle_percent": cycle_percent,
-            "alerts": alerts,
-            "recommendations": recommendations,
-            "health_score": health_score
+            "cycle": cycle,
+            "nitrate_alert": nitrate_alert,
+            "ammonia_alert": ammonia_alert,
+            "temp_alert": temp_alert,
+            "recommendation": recommendation,
+            "health": health
         }
     )
 
 
-# WATER TEST PAGE
-@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
-def add_test_page(request: Request, tank_id: int):
+# ----------------------------
+# Add Water Test Page
+# ----------------------------
+
+@router.get("/add-test/{tank_id}")
+def add_test_page(
+    tank_id: int,
+    request: Request
+):
 
     return templates.TemplateResponse(
         "add_test.html",
-        {"request": request, "tank_id": tank_id}
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
     )
 
 
-# SAVE WATER TEST
+# ----------------------------
+# Save Water Test
+# ----------------------------
+
 @router.post("/add-test/{tank_id}")
-def save_test(
+def add_test(
     tank_id: int,
-    ammonia: float = Form(...),
-    nitrite: float = Form(...),
-    nitrate: float = Form(...),
-    ph: float = Form(...),
-    temperature: float = Form(...),
+    ammonia: str = Form(None),
+    nitrite: str = Form(None),
+    nitrate: str = Form(None),
+    ph: str = Form(None),
+    temperature: str = Form(None),
     db: Session = Depends(get_db)
 ):
 
-    new_test = models.WaterTest(
+    test = WaterTest(
         tank_id=tank_id,
-        ammonia=ammonia,
-        nitrite=nitrite,
-        nitrate=nitrate,
-        ph=ph,
-        temperature=temperature
+        ammonia=float(ammonia) if ammonia else None,
+        nitrite=float(nitrite) if nitrite else None,
+        nitrate=float(nitrate) if nitrate else None,
+        ph=float(ph) if ph else None,
+        temperature=float(temperature) if temperature else None
     )
 
-    db.add(new_test)
+    db.add(test)
     db.commit()
 
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
 
 
-# WATER CHANGE PAGE
-@router.get("/water-change/{tank_id}", response_class=HTMLResponse)
-def water_change_page(request: Request, tank_id: int):
+# ----------------------------
+# Water Change Page
+# ----------------------------
+
+@router.get("/water-change/{tank_id}")
+def water_change_page(
+    tank_id: int,
+    request: Request
+):
 
     return templates.TemplateResponse(
         "water_change.html",
-        {"request": request, "tank_id": tank_id}
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
     )
 
 
-# SAVE WATER CHANGE
+# ----------------------------
+# Save Water Change
+# ----------------------------
+
 @router.post("/water-change/{tank_id}")
-def save_water_change(
+def water_change(
     tank_id: int,
     percent: float = Form(...),
     db: Session = Depends(get_db)
 ):
 
-    change = models.WaterChange(
+    wc = WaterChange(
         tank_id=tank_id,
         percent=percent
     )
 
-    db.add(change)
+    db.add(wc)
     db.commit()
 
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
