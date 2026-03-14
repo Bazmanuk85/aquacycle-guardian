@@ -8,6 +8,7 @@ from models import Tank, WaterTest, WaterChange
 
 from services.analytics import (
     detect_cycle_stage,
+    cycle_progress,
     nitrate_spike,
     ammonia_warning,
     temperature_alert,
@@ -28,10 +29,6 @@ def get_db():
         db.close()
 
 
-# ---------------------------
-# Dashboard
-# ---------------------------
-
 @router.get("/dashboard")
 def dashboard(request: Request, db: Session = Depends(get_db)):
 
@@ -39,16 +36,9 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(
         "dashboard.html",
-        {
-            "request": request,
-            "tanks": tanks
-        }
+        {"request": request, "tanks": tanks}
     )
 
-
-# ---------------------------
-# Create Tank Page
-# ---------------------------
 
 @router.get("/create-tank")
 def create_tank_page(request: Request):
@@ -59,21 +49,10 @@ def create_tank_page(request: Request):
     )
 
 
-# ---------------------------
-# Create Tank
-# ---------------------------
-
 @router.post("/create-tank")
-def create_tank(
-    name: str = Form(...),
-    tank_type: str = Form(...),
-    db: Session = Depends(get_db)
-):
+def create_tank(name: str = Form(...), tank_type: str = Form(...), db: Session = Depends(get_db)):
 
-    tank = Tank(
-        name=name,
-        tank_type=tank_type
-    )
+    tank = Tank(name=name, tank_type=tank_type)
 
     db.add(tank)
     db.commit()
@@ -81,45 +60,31 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# ---------------------------
-# Tank Detail
-# ---------------------------
-
 @router.get("/tank/{tank_id}")
-def tank_detail(
-    tank_id: int,
-    request: Request,
-    db: Session = Depends(get_db)
-):
+def tank_detail(tank_id: int, request: Request, db: Session = Depends(get_db)):
 
     tank = db.query(Tank).filter(Tank.id == tank_id).first()
 
     if not tank:
         return RedirectResponse("/dashboard", status_code=303)
 
-    tests = db.query(WaterTest).filter(
-        WaterTest.tank_id == tank_id
-    ).all()
+    tests = db.query(WaterTest).filter(WaterTest.tank_id == tank_id).all()
 
-    water_changes = db.query(WaterChange).filter(
-        WaterChange.tank_id == tank_id
-    ).all()
+    water_changes = db.query(WaterChange).filter(WaterChange.tank_id == tank_id).all()
 
-    # Safe analytics calculations
-    try:
-        cycle = detect_cycle_stage(tests)
-        nitrate_alert = nitrate_spike(tests)
-        ammonia_alert = ammonia_warning(tests)
-        temp_alert = temperature_alert(tests)
-        recommendation = recommend_water_change(tests)
-        health = tank_health_score(tests)
-    except:
-        cycle = "No Data"
-        nitrate_alert = None
-        ammonia_alert = None
-        temp_alert = None
-        recommendation = 0
-        health = 100
+    cycle = detect_cycle_stage(tests)
+
+    progress = cycle_progress(tests)
+
+    nitrate_alert = nitrate_spike(tests)
+
+    ammonia_alert = ammonia_warning(tests)
+
+    temp_alert = temperature_alert(tests)
+
+    recommendation = recommend_water_change(tests)
+
+    health = tank_health_score(tests)
 
     return templates.TemplateResponse(
         "tank.html",
@@ -129,6 +94,7 @@ def tank_detail(
             "tests": tests,
             "water_changes": water_changes,
             "cycle": cycle,
+            "cycle_progress": progress,
             "nitrate_alert": nitrate_alert,
             "ammonia_alert": ammonia_alert,
             "temp_alert": temp_alert,
@@ -138,28 +104,14 @@ def tank_detail(
     )
 
 
-# ---------------------------
-# Add Test Page
-# ---------------------------
-
 @router.get("/add-test/{tank_id}")
-def add_test_page(
-    tank_id: int,
-    request: Request
-):
+def add_test_page(tank_id: int, request: Request):
 
     return templates.TemplateResponse(
         "add_test.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
+        {"request": request, "tank_id": tank_id}
     )
 
-
-# ---------------------------
-# Save Water Test
-# ---------------------------
 
 @router.post("/add-test/{tank_id}")
 def add_test(
@@ -187,40 +139,19 @@ def add_test(
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
 
 
-# ---------------------------
-# Water Change Page
-# ---------------------------
-
 @router.get("/water-change/{tank_id}")
-def water_change_page(
-    tank_id: int,
-    request: Request
-):
+def water_change_page(tank_id: int, request: Request):
 
     return templates.TemplateResponse(
         "water_change.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
+        {"request": request, "tank_id": tank_id}
     )
 
-
-# ---------------------------
-# Save Water Change
-# ---------------------------
 
 @router.post("/water-change/{tank_id}")
-def water_change(
-    tank_id: int,
-    percent: float = Form(...),
-    db: Session = Depends(get_db)
-):
+def water_change(tank_id: int, percent: float = Form(...), db: Session = Depends(get_db)):
 
-    wc = WaterChange(
-        tank_id=tank_id,
-        percent=percent
-    )
+    wc = WaterChange(tank_id=tank_id, percent=percent)
 
     db.add(wc)
     db.commit()
