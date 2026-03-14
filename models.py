@@ -1,17 +1,14 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, Float, String, ForeignKey
 from sqlalchemy.orm import relationship
 from database import Base
-from datetime import datetime
 
 
 class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String)
+    username = Column(String, unique=True)
     password = Column(String)
-
-    tanks = relationship("Tank", back_populates="owner")
 
 
 class Tank(Base):
@@ -19,12 +16,10 @@ class Tank(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String)
-    volume = Column(Integer)
     tank_type = Column(String)
 
-    owner_id = Column(Integer, ForeignKey("users.id"))
-
-    owner = relationship("User", back_populates="tanks")
+    tests = relationship("WaterTest", back_populates="tank")
+    water_changes = relationship("WaterChange", back_populates="tank")
 
 
 class WaterTest(Base):
@@ -34,13 +29,14 @@ class WaterTest(Base):
 
     tank_id = Column(Integer, ForeignKey("tanks.id"))
 
-    ammonia = Column(String)
-    nitrite = Column(String)
-    nitrate = Column(String)
-    ph = Column(String)
-    temperature = Column(String)
+    ammonia = Column(Float)
+    nitrite = Column(Float)
+    nitrate = Column(Float)
 
-    created = Column(DateTime, default=datetime.utcnow)
+    ph = Column(Float)
+    temperature = Column(Float)
+
+    tank = relationship("Tank", back_populates="tests")
 
 
 class WaterChange(Base):
@@ -50,6 +46,6 @@ class WaterChange(Base):
 
     tank_id = Column(Integer, ForeignKey("tanks.id"))
 
-    percent = Column(Integer)
+    percent = Column(Float)
 
-    created = Column(DateTime, default=datetime.utcnow)
+    tank = relationship("Tank", back_populates="water_changes")
