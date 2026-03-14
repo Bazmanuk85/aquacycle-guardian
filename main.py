@@ -17,48 +17,70 @@ def login_page(request: Request):
 
     return templates.TemplateResponse(
         "login.html",
-        {
-            "request": request,
-            "error": None
-        }
+        {"request": request, "error": None}
     )
 
 
 @app.post("/login")
 def login(request: Request, username: str = Form(...), password: str = Form(...)):
 
-    if not username or not password:
+    try:
+
+        if not username or not password:
+
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "error": "Something fishy going on please check username / password"
+                }
+            )
+
+        db = SessionLocal()
+
+        user = db.query(models.User).filter(
+            models.User.username == username
+        ).first()
+
+        # create default admin if none exists
+        if not user and username == "admin" and password == "admin":
+
+            new_user = models.User(
+                username="admin",
+                password="admin"
+            )
+
+            db.add(new_user)
+            db.commit()
+
+            user = new_user
+
+        if not user or user.password != password:
+
+            return templates.TemplateResponse(
+                "login.html",
+                {
+                    "request": request,
+                    "error": "Something fishy going on please check username / password"
+                }
+            )
+
+        response = RedirectResponse("/dashboard", status_code=303)
+
+        response.set_cookie("user_id", str(user.id))
+        response.set_cookie("username", user.username)
+
+        return response
+
+    except Exception as e:
 
         return templates.TemplateResponse(
             "login.html",
             {
                 "request": request,
-                "error": "Something fishy going on — please check username / password"
+                "error": "Login system error – check server logs"
             }
         )
-
-    db = SessionLocal()
-
-    user = db.query(models.User).filter(
-        models.User.username == username
-    ).first()
-
-    if not user or user.password != password:
-
-        return templates.TemplateResponse(
-            "login.html",
-            {
-                "request": request,
-                "error": "Something fishy going on — please check username / password"
-            }
-        )
-
-    response = RedirectResponse("/dashboard", status_code=303)
-
-    response.set_cookie("user_id", str(user.id))
-    response.set_cookie("username", user.username)
-
-    return response
 
 
 @app.get("/logout")
