@@ -36,6 +36,43 @@ def dashboard(request: Request):
     )
 
 
+@router.get("/create-tank", response_class=HTMLResponse)
+def create_tank_page(request: Request):
+
+    return templates.TemplateResponse(
+        "create_tank.html",
+        {"request": request}
+    )
+
+
+@router.post("/create-tank")
+def create_tank(
+    request: Request,
+    name: str = Form(...),
+    volume: int = Form(...),
+    tank_type: str = Form(...)
+):
+
+    user_id = request.cookies.get("user_id")
+
+    if not user_id:
+        return RedirectResponse("/", status_code=303)
+
+    db = SessionLocal()
+
+    tank = models.Tank(
+        name=name,
+        volume=volume,
+        tank_type=tank_type,
+        owner_id=int(user_id)
+    )
+
+    db.add(tank)
+    db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
+
+
 @router.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_page(request: Request, tank_id: int):
 
@@ -85,3 +122,73 @@ def tank_page(request: Request, tank_id: int):
             "temperature": temperature
         }
     )
+
+
+@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
+def add_test_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "add_test.html",
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
+    )
+
+
+@router.post("/add-test/{tank_id}")
+def add_test(
+    tank_id: int,
+    ammonia: float = Form(...),
+    nitrite: float = Form(...),
+    nitrate: float = Form(...),
+    ph: float = Form(...),
+    temperature: float = Form(...)
+):
+
+    db = SessionLocal()
+
+    test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=str(ammonia),
+        nitrite=str(nitrite),
+        nitrate=str(nitrate),
+        ph=str(ph),
+        temperature=str(temperature)
+    )
+
+    db.add(test)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+
+
+@router.get("/water-change/{tank_id}", response_class=HTMLResponse)
+def water_change_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "water_change.html",
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
+    )
+
+
+@router.post("/water-change/{tank_id}")
+def add_water_change(
+    tank_id: int,
+    percent: int = Form(...)
+):
+
+    db = SessionLocal()
+
+    change = models.WaterChange(
+        tank_id=tank_id,
+        percent=percent
+    )
+
+    db.add(change)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
