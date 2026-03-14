@@ -118,13 +118,16 @@ def add_test_page(tank_id: int, request: Request):
 @router.post("/add-test/{tank_id}")
 def add_test(
     tank_id: int,
-    ammonia: str = Form(None),
-    nitrite: str = Form(None),
-    nitrate: str = Form(None),
-    ph: str = Form(None),
-    temperature: str = Form(None),
+    ammonia: str = Form(""),
+    nitrite: str = Form(""),
+    nitrate: str = Form(""),
+    ph: str = Form(""),
+    temperature: str = Form(""),
     db: Session = Depends(get_db)
 ):
+
+    if not any([ammonia, nitrite, nitrate, ph, temperature]):
+        return RedirectResponse(f"/tank/{tank_id}", status_code=303)
 
     test = WaterTest(
         tank_id=tank_id,
