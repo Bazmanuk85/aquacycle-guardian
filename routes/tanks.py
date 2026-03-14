@@ -1,174 +1,93 @@
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+<html>
 
-from database import SessionLocal
-import models
+<head>
 
-router = APIRouter()
+<title>AquaGuardian</title>
 
-templates = Jinja2Templates(directory="templates")
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+<style>
 
-# DASHBOARD
-@router.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request):
+body{
+background:#020617;
+color:white;
+font-family:Arial;
+padding:30px;
+}
 
-    user_id = request.cookies.get("user_id")
-    username = request.cookies.get("username")
+button{
+background:#38bdf8;
+border:none;
+padding:10px;
+border-radius:6px;
+cursor:pointer;
+}
 
-    if not user_id:
-        return RedirectResponse(url="/", status_code=303)
+</style>
 
-    db = SessionLocal()
+</head>
 
-    tanks = db.query(models.Tank).filter(
-        models.Tank.owner_id == int(user_id)
-    ).all()
+<body>
 
-    return templates.TemplateResponse(
-        "dashboard.html",
-        {
-            "request": request,
-            "username": username,
-            "tanks": tanks
-        }
-    )
+<h1>{{ tank.name }}</h1>
 
+<p>{{ tank.volume }}L Aquarium</p>
 
-# CREATE TANK PAGE
-@router.get("/create-tank", response_class=HTMLResponse)
-def create_tank_page(request: Request):
+<a href="/dashboard"><button>Back</button></a>
 
-    return templates.TemplateResponse(
-        "create_tank.html",
-        {"request": request}
-    )
+<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
 
+<br><br>
 
-# CREATE TANK
-@router.post("/create-tank")
-def create_tank(request: Request, name: str = Form(...), volume: int = Form(...)):
+<h2>Nitrogen Cycle</h2>
 
-    user_id = request.cookies.get("user_id")
+<canvas id="chart"></canvas>
 
-    if not user_id:
-        return RedirectResponse(url="/", status_code=303)
+<script>
 
-    db = SessionLocal()
+const ammonia = {{ ammonia }};
+const nitrite = {{ nitrite }};
+const nitrate = {{ nitrate }};
+const labels = {{ dates }};
 
-    new_tank = models.Tank(
-        name=name,
-        volume=volume,
-        owner_id=int(user_id)
-    )
+const ctx = document.getElementById('chart');
 
-    db.add(new_tank)
-    db.commit()
+new Chart(ctx,{
 
-    return RedirectResponse(url="/dashboard", status_code=303)
+type:'line',
 
+data:{
 
-# DELETE TANK
-@router.get("/delete-tank/{tank_id}")
-def delete_tank(request: Request, tank_id: int):
+labels:labels,
 
-    user_id = request.cookies.get("user_id")
+datasets:[
 
-    if not user_id:
-        return RedirectResponse(url="/", status_code=303)
+{
+label:'Ammonia',
+data:ammonia,
+borderColor:'#ef4444'
+},
 
-    db = SessionLocal()
+{
+label:'Nitrite',
+data:nitrite,
+borderColor:'#3b82f6'
+},
 
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
+{
+label:'Nitrate',
+data:nitrate,
+borderColor:'#22c55e'
+}
 
-    if tank:
-        db.delete(tank)
-        db.commit()
+]
 
-    return RedirectResponse(url="/dashboard", status_code=303)
+}
 
+});
 
-# VIEW TANK
-@router.get("/tank/{tank_id}", response_class=HTMLResponse)
-def tank_page(request: Request, tank_id: int):
+</script>
 
-    db = SessionLocal()
+</body>
 
-    tank = db.query(models.Tank).filter(
-        models.Tank.id == tank_id
-    ).first()
-
-    tests = db.query(models.WaterTest).filter(
-        models.WaterTest.tank_id == tank_id
-    ).all()
-
-    ammonia = []
-    nitrite = []
-    nitrate = []
-    dates = []
-
-    for t in tests:
-        try:
-            ammonia.append(float(t.ammonia))
-            nitrite.append(float(t.nitrite))
-            nitrate.append(float(t.nitrate))
-            dates.append(t.created.strftime("%d %b"))
-        except:
-            pass
-
-    return templates.TemplateResponse(
-        "tank.html",
-        {
-            "request": request,
-            "tank": tank,
-            "tests": tests,
-            "ammonia": ammonia,
-            "nitrite": nitrite,
-            "nitrate": nitrate,
-            "dates": dates
-        }
-    )
-
-
-# ADD WATER TEST PAGE
-@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
-def add_test_page(request: Request, tank_id: int):
-
-    return templates.TemplateResponse(
-        "add_test.html",
-        {
-            "request": request,
-            "tank_id": tank_id
-        }
-    )
-
-
-# SAVE WATER TEST
-@router.post("/add-test/{tank_id}")
-def add_test(
-    tank_id: int,
-    ammonia: str = Form(...),
-    nitrite: str = Form(...),
-    nitrate: str = Form(...),
-    ph: str = Form(...),
-    temperature: str = Form(...)
-):
-
-    db = SessionLocal()
-
-    test = models.WaterTest(
-        tank_id=tank_id,
-        ammonia=ammonia,
-        nitrite=nitrite,
-        nitrate=nitrate,
-        ph=ph,
-        temperature=temperature
-    )
-
-    db.add(test)
-    db.commit()
-
-    return RedirectResponse(url=f"/tank/{tank_id}", status_code=303)
+</html>
