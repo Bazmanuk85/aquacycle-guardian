@@ -4,6 +4,14 @@ from datetime import datetime
 from database import Base
 
 
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True)
+    password = Column(String)
+
+
 class Tank(Base):
     __tablename__ = "tanks"
 
