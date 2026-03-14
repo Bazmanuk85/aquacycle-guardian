@@ -31,6 +31,24 @@ cursor:pointer;
 margin-right:10px;
 }
 
+.progress-container{
+background:#1e293b;
+border-radius:10px;
+overflow:hidden;
+height:22px;
+margin-top:10px;
+}
+
+.progress-bar{
+background:#22c55e;
+height:100%;
+text-align:center;
+font-size:12px;
+line-height:22px;
+color:black;
+font-weight:bold;
+}
+
 </style>
 
 </head>
@@ -39,19 +57,45 @@ margin-right:10px;
 
 <h1>{{ tank.name }}</h1>
 
+
 <div class="card">
 
 <h3>Cycle Stage: {{ cycle_stage }}</h3>
+
 <p>Cycle Progress: {{ cycle_progress }}%</p>
-<p>Tank Health: {{ tank_health }}</p>
+
+<div class="progress-container">
+
+<div class="progress-bar" style="width: {{ cycle_progress }}%">
+
+{{ cycle_progress }}%
 
 </div>
+
+</div>
+
+<p><b>Tank Health:</b> {{ tank_health }}</p>
+
+</div>
+
 
 <div class="card">
 
 <p><b>Recommendation:</b> {{ recommendation }}</p>
 
+{% if water_change_recommendation %}
+
+<p style="color:#38bdf8">
+
+Recommended Water Change:  
+<b>{{ water_change_recommendation }}%</b>
+
+</p>
+
+{% endif %}
+
 </div>
+
 
 <div class="card">
 
@@ -68,13 +112,18 @@ margin-right:10px;
 
 </div>
 
+
 <a href="/dashboard"><button>Back</button></a>
+
 <a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
+
 <a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
+
 
 <br><br>
 
 <canvas id="cycleChart"></canvas>
+
 
 <script>
 
@@ -90,9 +139,21 @@ type:"line",
 data:{
 labels:labels,
 datasets:[
-{label:"Ammonia",data:ammonia,borderColor:"#ef4444"},
-{label:"Nitrite",data:nitrite,borderColor:"#3b82f6"},
-{label:"Nitrate",data:nitrate,borderColor:"#22c55e"}
+{
+label:"Ammonia",
+data:ammonia,
+borderColor:"#ef4444"
+},
+{
+label:"Nitrite",
+data:nitrite,
+borderColor:"#3b82f6"
+},
+{
+label:"Nitrate",
+data:nitrate,
+borderColor:"#22c55e"
+}
 ]
 }
 });
