@@ -1,63 +1,36 @@
 <html>
 
 <head>
-
-<title>Create Tank</title>
-
-<style>
-
-body{
-background:#020617;
-color:white;
-font-family:Arial;
-padding:30px;
-}
-
-.card{
-background:#0f172a;
-padding:20px;
-border-radius:10px;
-width:400px;
-}
-
-input{
-width:100%;
-padding:8px;
-margin-bottom:10px;
-}
-
-button{
-background:#38bdf8;
-border:none;
-padding:10px;
-border-radius:6px;
-}
-
-</style>
-
+<title>AquaGuardian</title>
 </head>
 
 <body>
 
-<div class="card">
-
 <h2>Create Aquarium</h2>
 
-<form action="/create-tank" method="post">
+<form method="post" action="/create-tank">
 
-Tank Name
-
+<label>Name</label>
 <input name="name">
 
-Volume (Litres)
+<label>Volume (Litres)</label>
+<input type="number" name="volume">
 
-<input name="volume">
+<label>Tank Type</label>
+
+<select name="tank_type">
+
+<option value="Freshwater">Freshwater</option>
+<option value="Marine">Marine</option>
+<option value="Brackish">Brackish</option>
+
+</select>
+
+<br><br>
 
 <button type="submit">Create Tank</button>
 
 </form>
-
-</div>
 
 </body>
 
