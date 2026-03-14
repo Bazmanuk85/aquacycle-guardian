@@ -17,7 +17,7 @@ padding:30px;
 background:#0f172a;
 padding:20px;
 border-radius:10px;
-max-width:400px;
+max-width:420px;
 }
 
 input, select{
@@ -34,6 +34,7 @@ border:none;
 padding:10px;
 border-radius:6px;
 cursor:pointer;
+margin-right:10px;
 }
 
 </style>
@@ -49,10 +50,10 @@ cursor:pointer;
 <form method="post" action="/create-tank">
 
 <label>Tank Name</label>
-<input name="name">
+<input name="name" required>
 
 <label>Volume (Litres)</label>
-<input type="number" name="volume">
+<input type="number" name="volume" required>
 
 <label>Tank Type</label>
 
@@ -65,6 +66,10 @@ cursor:pointer;
 </select>
 
 <button type="submit">Create Tank</button>
+
+<a href="/dashboard">
+<button type="button">Back</button>
+</a>
 
 </form>
 
