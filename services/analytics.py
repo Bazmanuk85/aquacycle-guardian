@@ -25,9 +25,6 @@ def detect_cycle_stage(tests):
 
 def cycle_progress(tests):
 
-    if not tests:
-        return 0
-
     stage = detect_cycle_stage(tests)
 
     if stage == "Cycle starting":
@@ -45,17 +42,15 @@ def cycle_progress(tests):
     return 0
 
 
-def nitrate_spike(tests):
+def nitrate_spike(nitrate_values):
 
-    nitrates = [t.nitrate for t in tests if t.nitrate is not None]
-
-    if len(nitrates) < 2:
+    if len(nitrate_values) < 2:
         return None
 
-    if nitrates[-1] > nitrates[-2] + 10:
+    if nitrate_values[-1] > nitrate_values[-2] + 10:
         return "Nitrate spike detected"
 
-    if nitrates[-1] > 40:
+    if nitrate_values[-1] > 40:
         return "Nitrate dangerously high"
 
     return None
@@ -97,25 +92,7 @@ def temperature_alert(tests):
     return None
 
 
-def apply_water_change_dilution(tests, water_changes):
-
-    if not tests:
-        return tests
-
-    nitrate = None
-
-    for t in tests:
-        if t.nitrate is not None:
-            nitrate = t.nitrate
-
-    for wc in water_changes:
-        if nitrate is not None:
-            nitrate = nitrate * (1 - wc.percent / 100)
-
-    return nitrate
-
-
-def recommend_water_change(tests):
+def base_water_change_recommendation(tests):
 
     nitrates = [t.nitrate for t in tests if t.nitrate is not None]
 
@@ -134,6 +111,23 @@ def recommend_water_change(tests):
         return 50
 
     return 70
+
+
+def adjusted_water_change_recommendation(tests, water_changes):
+
+    base = base_water_change_recommendation(tests)
+
+    if base is None:
+        return None
+
+    total_change = sum(w.percent for w in water_changes if w.percent)
+
+    remaining = base - total_change
+
+    if remaining < 0:
+        remaining = 0
+
+    return round(remaining, 1)
 
 
 def tank_health_score(tests):
