@@ -26,12 +26,47 @@ def dashboard(request: Request):
         models.Tank.owner_id == int(user_id)
     ).all()
 
+    alerts = []
+
+    for tank in tanks:
+
+        latest_test = db.query(models.WaterTest).filter(
+            models.WaterTest.tank_id == tank.id
+        ).order_by(models.WaterTest.created.desc()).first()
+
+        latest_change = db.query(models.WaterChange).filter(
+            models.WaterChange.tank_id == tank.id
+        ).order_by(models.WaterChange.created.desc()).first()
+
+
+        if latest_change:
+
+            days = (datetime.utcnow() - latest_change.created).days
+
+            if days >= 7:
+
+                alerts.append(
+                    f"{tank.name}: {days} days since last water change"
+                )
+
+
+        if latest_test:
+
+            nitrate = float(latest_test.nitrate)
+
+            if nitrate >= 40:
+
+                alerts.append(
+                    f"{tank.name}: Nitrate high — perform water change"
+                )
+
     return templates.TemplateResponse(
         "dashboard.html",
         {
             "request": request,
             "username": username,
-            "tanks": tanks
+            "tanks": tanks,
+            "alerts": alerts
         }
     )
 
@@ -72,6 +107,29 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
+# DELETE TANK
+@router.post("/delete-tank/{tank_id}")
+def delete_tank(tank_id: int):
+
+    db = SessionLocal()
+
+    db.query(models.WaterTest).filter(
+        models.WaterTest.tank_id == tank_id
+    ).delete()
+
+    db.query(models.WaterChange).filter(
+        models.WaterChange.tank_id == tank_id
+    ).delete()
+
+    db.query(models.Tank).filter(
+        models.Tank.id == tank_id
+    ).delete()
+
+    db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
+
+
 # TANK PAGE
 @router.get("/tank/{tank_id}", response_class=HTMLResponse)
 def tank_page(request: Request, tank_id: int):
@@ -90,7 +148,6 @@ def tank_page(request: Request, tank_id: int):
         models.WaterChange.tank_id == tank_id
     ).order_by(models.WaterChange.created.desc()).all()
 
-
     ammonia = []
     nitrite = []
     nitrate = []
@@ -104,7 +161,6 @@ def tank_page(request: Request, tank_id: int):
         dates.append(t.created.strftime("%d %b"))
 
 
-    # LAST WATER CHANGE
     last_change = None
     days_since_change = None
 
@@ -116,7 +172,6 @@ def tank_page(request: Request, tank_id: int):
         days_since_change = (datetime.utcnow() - latest_change.created).days
 
 
-    # CYCLE ANALYTICS
     cycle_stage = "No data"
     cycle_progress = 0
     tank_health = "Unknown"
@@ -157,6 +212,7 @@ def tank_page(request: Request, tank_id: int):
 
         if na > 40:
             health_score -= 20
+
 
         if health_score >= 80:
             tank_health = "Excellent"
