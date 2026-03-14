@@ -90,13 +90,58 @@ def tank_page(request: Request, tank_id: int):
         models.WaterChange.tank_id == tank_id
     ).all()
 
+    labels = []
+    ammonia = []
+    nitrite = []
+    nitrate = []
+    ph = []
+    temperature = []
+
+    index = 1
+
+    for t in tests:
+
+        labels.append(str(index))
+        index += 1
+
+        try:
+            ammonia.append(float(t.ammonia))
+        except:
+            ammonia.append(0)
+
+        try:
+            nitrite.append(float(t.nitrite))
+        except:
+            nitrite.append(0)
+
+        try:
+            nitrate.append(float(t.nitrate))
+        except:
+            nitrate.append(0)
+
+        try:
+            ph.append(float(t.ph))
+        except:
+            ph.append(0)
+
+        try:
+            temperature.append(float(t.temperature))
+        except:
+            temperature.append(0)
+
     return templates.TemplateResponse(
         "tank.html",
         {
             "request": request,
             "tank": tank,
             "tests": tests,
-            "changes": changes
+            "changes": changes,
+            "labels": labels,
+            "ammonia": ammonia,
+            "nitrite": nitrite,
+            "nitrate": nitrate,
+            "ph": ph,
+            "temperature": temperature
         }
     )
 
