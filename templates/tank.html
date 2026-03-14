@@ -1,10 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ tank.name }} - AquaGuardian</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+body{
+font-family:Arial;
+background:#0f172a;
+color:white;
+margin:0;
+padding:30px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+}
+
+.header{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+.card{
+background:#1e293b;
+padding:20px;
+border-radius:10px;
+margin-bottom:20px;
+}
+
+button{
+padding:10px 18px;
+border:none;
+border-radius:6px;
+background:#3b82f6;
+color:white;
+cursor:pointer;
+}
+
+button:hover{
+background:#2563eb;
+}
+
+.progress{
+background:#334155;
+border-radius:10px;
+height:20px;
+overflow:hidden;
+margin-top:10px;
+}
+
+.progress-bar{
+background:#22c55e;
+height:20px;
+}
+
+.alert{
+color:#f87171;
+}
+
+.recommend{
+color:#60a5fa;
+}
+
+.health{
+font-size:28px;
+font-weight:bold;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<h1>{{ tank.name }}</h1>
+
+<div>
+<a href="/dashboard"><button>Back</button></a>
+</div>
+</div>
+
+<div class="card">
+
+<h3>Nitrogen Cycle Status</h3>
+
+<p>{{ cycle_stage }}</p>
+
+<div class="progress">
+<div class="progress-bar" style="width: {{ cycle_percent }}%"></div>
+</div>
+
+</div>
+
+
+<div class="card">
+
+<h3>Water Parameters</h3>
+
+<canvas id="waterChart"></canvas>
+
+</div>
+
+
 <div class="card">
 
 <h3>Tank Health Score</h3>
 
-<h1>{{ health_score }}%</h1>
+<div class="health">
+{{ health_score }}%
+</div>
 
 </div>
+
 
 <div class="card">
 
@@ -12,8 +128,8 @@
 
 {% if alerts %}
 <ul>
-{% for alert in alerts %}
-<li>{{ alert }}</li>
+{% for a in alerts %}
+<li class="alert">{{ a }}</li>
 {% endfor %}
 </ul>
 {% else %}
@@ -22,6 +138,7 @@
 
 </div>
 
+
 <div class="card">
 
 <h3>Recommendations</h3>
@@ -29,7 +146,7 @@
 {% if recommendations %}
 <ul>
 {% for r in recommendations %}
-<li>{{ r }}</li>
+<li class="recommend">{{ r }}</li>
 {% endfor %}
 </ul>
 {% else %}
@@ -37,3 +154,79 @@
 {% endif %}
 
 </div>
+
+
+<div class="card">
+
+<a href="/add-test/{{ tank.id }}"><button>Log Water Test</button></a>
+<a href="/water-change/{{ tank.id }}"><button>Log Water Change</button></a>
+
+</div>
+
+</div>
+
+
+<script>
+
+const labels = [
+{% for t in tests %}
+"{{ t.date }}",
+{% endfor %}
+]
+
+const ammonia = [
+{% for t in tests %}
+{{ t.ammonia }},
+{% endfor %}
+]
+
+const nitrite = [
+{% for t in tests %}
+{{ t.nitrite }},
+{% endfor %}
+]
+
+const nitrate = [
+{% for t in tests %}
+{{ t.nitrate }},
+{% endfor %}
+]
+
+new Chart(document.getElementById("waterChart"), {
+
+type:"line",
+
+data:{
+labels:labels,
+datasets:[
+
+{
+label:"Ammonia",
+data:ammonia,
+borderColor:"red",
+tension:0.4
+},
+
+{
+label:"Nitrite",
+data:nitrite,
+borderColor:"orange",
+tension:0.4
+},
+
+{
+label:"Nitrate",
+data:nitrate,
+borderColor:"green",
+tension:0.4
+}
+
+]
+}
+
+})
+
+</script>
+
+</body>
+</html>
