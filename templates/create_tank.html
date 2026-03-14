@@ -1,16 +1,54 @@
 <html>
 
 <head>
+
 <title>AquaGuardian</title>
+
+<style>
+
+body{
+background:#020617;
+color:white;
+font-family:Arial;
+padding:30px;
+}
+
+.card{
+background:#0f172a;
+padding:20px;
+border-radius:10px;
+max-width:400px;
+}
+
+input, select{
+width:100%;
+padding:10px;
+margin-bottom:15px;
+border-radius:6px;
+border:none;
+}
+
+button{
+background:#38bdf8;
+border:none;
+padding:10px;
+border-radius:6px;
+cursor:pointer;
+}
+
+</style>
+
 </head>
 
 <body>
 
-<h2>Create Aquarium</h2>
+<h1>Create Aquarium</h1>
+
+<div class="card">
 
 <form method="post" action="/create-tank">
 
-<label>Name</label>
+<label>Tank Name</label>
 <input name="name">
 
 <label>Volume (Litres)</label>
@@ -26,11 +64,11 @@
 
 </select>
 
-<br><br>
-
 <button type="submit">Create Tank</button>
 
 </form>
+
+</div>
 
 </body>
 
