@@ -8,21 +8,50 @@
 
 body{
 background:#0f172a;
-color:white;
 font-family:Arial;
-padding:30px;
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+margin:0;
+}
+
+.card{
+background:#1e293b;
+padding:40px;
+border-radius:10px;
+width:300px;
+text-align:center;
 }
 
 input{
-display:block;
-margin:10px 0;
+width:100%;
 padding:8px;
-width:200px;
+margin:6px 0 14px 0;
+border:none;
+border-radius:5px;
 }
 
 button{
-padding:10px 20px;
-margin-top:10px;
+background:#3b82f6;
+border:none;
+padding:10px;
+width:100%;
+color:white;
+border-radius:5px;
+cursor:pointer;
+}
+
+button:hover{
+background:#2563eb;
+}
+
+.back{
+margin-top:15px;
+display:block;
+color:#94a3b8;
+text-decoration:none;
 }
 
 </style>
@@ -30,6 +59,8 @@ margin-top:10px;
 </head>
 
 <body>
+
+<div class="card">
 
 <h2>Log Water Test</h2>
 
@@ -53,6 +84,10 @@ margin-top:10px;
 <button type="submit">Save</button>
 
 </form>
+
+<a class="back" href="/tank/{{tank_id}}">Back</a>
+
+</div>
 
 </body>
 </html>
