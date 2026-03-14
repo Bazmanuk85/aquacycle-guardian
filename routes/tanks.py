@@ -66,9 +66,7 @@ def create_tank(request: Request, name: str = Form(...), volume: int = Form(...)
     db.add(new_tank)
     db.commit()
 
-    response = RedirectResponse(url="/dashboard", status_code=303)
-
-    return response
+    return RedirectResponse(url="/dashboard", status_code=303)
 
 
 # DELETE TANK
@@ -91,3 +89,86 @@ def delete_tank(request: Request, tank_id: int):
         db.commit()
 
     return RedirectResponse(url="/dashboard", status_code=303)
+
+
+# VIEW TANK
+@router.get("/tank/{tank_id}", response_class=HTMLResponse)
+def tank_page(request: Request, tank_id: int):
+
+    db = SessionLocal()
+
+    tank = db.query(models.Tank).filter(
+        models.Tank.id == tank_id
+    ).first()
+
+    tests = db.query(models.WaterTest).filter(
+        models.WaterTest.tank_id == tank_id
+    ).all()
+
+    ammonia = []
+    nitrite = []
+    nitrate = []
+    dates = []
+
+    for t in tests:
+        try:
+            ammonia.append(float(t.ammonia))
+            nitrite.append(float(t.nitrite))
+            nitrate.append(float(t.nitrate))
+            dates.append(t.created.strftime("%d %b"))
+        except:
+            pass
+
+    return templates.TemplateResponse(
+        "tank.html",
+        {
+            "request": request,
+            "tank": tank,
+            "tests": tests,
+            "ammonia": ammonia,
+            "nitrite": nitrite,
+            "nitrate": nitrate,
+            "dates": dates
+        }
+    )
+
+
+# ADD WATER TEST PAGE
+@router.get("/add-test/{tank_id}", response_class=HTMLResponse)
+def add_test_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "add_test.html",
+        {
+            "request": request,
+            "tank_id": tank_id
+        }
+    )
+
+
+# SAVE WATER TEST
+@router.post("/add-test/{tank_id}")
+def add_test(
+    tank_id: int,
+    ammonia: str = Form(...),
+    nitrite: str = Form(...),
+    nitrate: str = Form(...),
+    ph: str = Form(...),
+    temperature: str = Form(...)
+):
+
+    db = SessionLocal()
+
+    test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=ammonia,
+        nitrite=nitrite,
+        nitrate=nitrate,
+        ph=ph,
+        temperature=temperature
+    )
+
+    db.add(test)
+    db.commit()
+
+    return RedirectResponse(url=f"/tank/{tank_id}", status_code=303)
