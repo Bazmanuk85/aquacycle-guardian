@@ -28,9 +28,9 @@ def get_db():
         db.close()
 
 
-# ----------------------------
+# ---------------------------
 # Dashboard
-# ----------------------------
+# ---------------------------
 
 @router.get("/dashboard")
 def dashboard(request: Request, db: Session = Depends(get_db)):
@@ -46,9 +46,9 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     )
 
 
-# ----------------------------
-# Create Tank
-# ----------------------------
+# ---------------------------
+# Create Tank Page
+# ---------------------------
 
 @router.get("/create-tank")
 def create_tank_page(request: Request):
@@ -58,6 +58,10 @@ def create_tank_page(request: Request):
         {"request": request}
     )
 
+
+# ---------------------------
+# Create Tank
+# ---------------------------
 
 @router.post("/create-tank")
 def create_tank(
@@ -77,9 +81,9 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# ----------------------------
-# Tank Page
-# ----------------------------
+# ---------------------------
+# Tank Detail
+# ---------------------------
 
 @router.get("/tank/{tank_id}")
 def tank_detail(
@@ -90,6 +94,9 @@ def tank_detail(
 
     tank = db.query(Tank).filter(Tank.id == tank_id).first()
 
+    if not tank:
+        return RedirectResponse("/dashboard", status_code=303)
+
     tests = db.query(WaterTest).filter(
         WaterTest.tank_id == tank_id
     ).all()
@@ -98,15 +105,21 @@ def tank_detail(
         WaterChange.tank_id == tank_id
     ).all()
 
-    cycle = detect_cycle_stage(tests)
-
-    nitrate_alert = nitrate_spike(tests)
-    ammonia_alert = ammonia_warning(tests)
-    temp_alert = temperature_alert(tests)
-
-    recommendation = recommend_water_change(tests)
-
-    health = tank_health_score(tests)
+    # Safe analytics calculations
+    try:
+        cycle = detect_cycle_stage(tests)
+        nitrate_alert = nitrate_spike(tests)
+        ammonia_alert = ammonia_warning(tests)
+        temp_alert = temperature_alert(tests)
+        recommendation = recommend_water_change(tests)
+        health = tank_health_score(tests)
+    except:
+        cycle = "No Data"
+        nitrate_alert = None
+        ammonia_alert = None
+        temp_alert = None
+        recommendation = 0
+        health = 100
 
     return templates.TemplateResponse(
         "tank.html",
@@ -125,9 +138,9 @@ def tank_detail(
     )
 
 
-# ----------------------------
-# Add Water Test Page
-# ----------------------------
+# ---------------------------
+# Add Test Page
+# ---------------------------
 
 @router.get("/add-test/{tank_id}")
 def add_test_page(
@@ -144,9 +157,9 @@ def add_test_page(
     )
 
 
-# ----------------------------
+# ---------------------------
 # Save Water Test
-# ----------------------------
+# ---------------------------
 
 @router.post("/add-test/{tank_id}")
 def add_test(
@@ -174,9 +187,9 @@ def add_test(
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
 
 
-# ----------------------------
+# ---------------------------
 # Water Change Page
-# ----------------------------
+# ---------------------------
 
 @router.get("/water-change/{tank_id}")
 def water_change_page(
@@ -193,9 +206,9 @@ def water_change_page(
     )
 
 
-# ----------------------------
+# ---------------------------
 # Save Water Change
-# ----------------------------
+# ---------------------------
 
 @router.post("/water-change/{tank_id}")
 def water_change(
