@@ -1,66 +1,81 @@
+<!DOCTYPE html>
 <html>
-
 <head>
-
-<title>AquaGuardian</title>
+<title>{{ tank.name }} - AquaGuardian</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-
 body{
-background:#020617;
-color:white;
 font-family:Arial;
+background:#0f172a;
+color:white;
 padding:30px;
 }
 
+.container{
+max-width:900px;
+margin:auto;
+}
+
 .card{
-background:#0f172a;
-padding:25px;
-border-radius:12px;
-margin-bottom:30px;
-max-width:950px;
-}
-
-.progress{
-height:20px;
 background:#1e293b;
+padding:20px;
 border-radius:10px;
-overflow:hidden;
-}
-
-.bar{
-height:20px;
-background:#22c55e;
+margin-bottom:20px;
 }
 
 button{
-background:#38bdf8;
+padding:10px 16px;
 border:none;
-padding:10px;
 border-radius:6px;
+background:#3b82f6;
+color:white;
 cursor:pointer;
 margin-right:10px;
 }
 
+button:hover{
+background:#2563eb;
+}
+
+.progress{
+background:#334155;
+border-radius:10px;
+height:20px;
+overflow:hidden;
+}
+
+.progress-bar{
+background:#22c55e;
+height:20px;
+}
 </style>
 
 </head>
-
 <body>
+
+<div class="container">
 
 <h1>{{ tank.name }}</h1>
 
 <div class="card">
 
-<h2>Nitrogen Cycle Status</h2>
+<h3>Nitrogen Cycle Status</h3>
 
 <p>{{ cycle_stage }}</p>
 
 <div class="progress">
-<div class="bar" style="width:{{ cycle_progress }}%"></div>
+<div class="progress-bar" style="width: {{ cycle_percent }}%"></div>
 </div>
+
+</div>
+
+<div class="card">
+
+<h3>Water Test Graph</h3>
+
+<canvas id="waterChart"></canvas>
 
 </div>
 
@@ -72,72 +87,62 @@ margin-right:10px;
 
 </div>
 
-<div class="card">
-
-<h2>Water Chemistry</h2>
-
-<canvas id="chart"></canvas>
-
 </div>
 
 <script>
 
-const labels = {{ labels | tojson }}
-
-const data = {
-
-labels: labels,
-
-datasets: [
-
-{
-label:"Ammonia",
-data:{{ ammonia | tojson }},
-borderColor:"#ef4444",
-tension:0.4
-},
-
-{
-label:"Nitrite",
-data:{{ nitrite | tojson }},
-borderColor:"#f59e0b",
-tension:0.4
-},
-
-{
-label:"Nitrate",
-data:{{ nitrate | tojson }},
-borderColor:"#22c55e",
-tension:0.4
-},
-
-{
-label:"pH",
-data:{{ ph | tojson }},
-borderColor:"#3b82f6",
-tension:0.4
-},
-
-{
-label:"Temperature",
-data:{{ temperature | tojson }},
-borderColor:"#a855f7",
-tension:0.4
-}
-
+const labels = [
+{% for t in tests %}
+"{{ t.date }}",
+{% endfor %}
 ]
 
-}
+const ammonia = [
+{% for t in tests %}
+{{ t.ammonia }},
+{% endfor %}
+]
 
-new Chart(
-document.getElementById("chart"),
+const nitrite = [
+{% for t in tests %}
+{{ t.nitrite }},
+{% endfor %}
+]
+
+const nitrate = [
+{% for t in tests %}
+{{ t.nitrate }},
+{% endfor %}
+]
+
+new Chart(document.getElementById("waterChart"), {
+type: "line",
+data: {
+labels: labels,
+datasets: [
 {
-type:"line",
-data:data
+label: "Ammonia",
+data: ammonia,
+borderColor: "red",
+tension: 0.4
+},
+{
+label: "Nitrite",
+data: nitrite,
+borderColor: "orange",
+tension: 0.4
+},
+{
+label: "Nitrate",
+data: nitrate,
+borderColor: "green",
+tension: 0.4
+}
+]
+}
 })
 
 </script>
 
 </body>
-
 </html>
