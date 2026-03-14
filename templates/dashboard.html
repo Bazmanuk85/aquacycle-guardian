@@ -13,17 +13,6 @@ font-family:Arial;
 padding:30px;
 }
 
-.header{
-display:flex;
-justify-content:space-between;
-align-items:center;
-}
-
-.title{
-font-size:28px;
-color:#38bdf8;
-}
-
 .card{
 background:#0f172a;
 padding:20px;
@@ -34,9 +23,14 @@ margin-bottom:20px;
 button{
 background:#38bdf8;
 border:none;
-padding:8px 12px;
+padding:10px;
 border-radius:6px;
 cursor:pointer;
+}
+
+.alert{
+color:#f97316;
+margin-bottom:10px;
 }
 
 </style>
@@ -45,41 +39,57 @@ cursor:pointer;
 
 <body>
 
-<div class="header">
+<h1>AquaGuardian</h1>
 
-<div class="title">AquaGuardian</div>
-
-<a href="/logout"><button>Logout</button></a>
-
-</div>
-
-<br>
-
-<h2>Welcome {{ username }}</h2>
-
-<a href="/create-tank"><button>Add Tank</button></a>
-
-<br><br>
-
-{% for tank in tanks %}
+<h3>Welcome {{ username }}</h3>
 
 <div class="card">
 
-<h2>
-<a href="/tank/{{ tank.id }}">
-{{ tank.name }}
-</a>
-</h2>
+<h3>Maintenance Alerts</h3>
 
-<p>{{ tank.volume }}L</p>
+{% if alerts %}
 
-<a href="/delete-tank/{{ tank.id }}">
-<button>Delete Tank</button>
-</a>
+{% for alert in alerts %}
+
+<p class="alert">⚠ {{ alert }}</p>
+
+{% endfor %}
+
+{% else %}
+
+<p>No alerts</p>
+
+{% endif %}
 
 </div>
 
+
+<div class="card">
+
+<h3>Your Tanks</h3>
+
+{% for tank in tanks %}
+
+<p>
+
+<a href="/tank/{{ tank.id }}">
+
+<button>{{ tank.name }}</button>
+
+</a>
+
+</p>
+
 {% endfor %}
+
+</div>
+
+
+<a href="/create-tank">
+
+<button>Add Tank</button>
+
+</a>
 
 </body>
 
