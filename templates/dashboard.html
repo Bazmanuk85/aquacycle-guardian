@@ -23,9 +23,14 @@ margin-bottom:20px;
 button{
 background:#38bdf8;
 border:none;
-padding:10px;
+padding:8px;
 border-radius:6px;
 cursor:pointer;
+margin-right:5px;
+}
+
+.delete{
+background:#ef4444;
 }
 
 .alert{
@@ -63,7 +68,6 @@ margin-bottom:10px;
 
 </div>
 
-
 <div class="card">
 
 <h3>Your Tanks</h3>
@@ -73,10 +77,12 @@ margin-bottom:10px;
 <p>
 
 <a href="/tank/{{ tank.id }}">
-
 <button>{{ tank.name }}</button>
-
 </a>
+
+<form action="/delete-tank/{{ tank.id }}" method="post" style="display:inline;">
+<button class="delete">Delete</button>
+</form>
 
 </p>
 
@@ -84,11 +90,8 @@ margin-bottom:10px;
 
 </div>
 
-
 <a href="/create-tank">
-
 <button>Add Tank</button>
-
 </a>
 
 </body>
