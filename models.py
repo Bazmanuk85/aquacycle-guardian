@@ -20,8 +20,11 @@ class Tank(Base):
     __tablename__ = "tanks"
 
     id = Column(Integer, primary_key=True)
+
     name = Column(String)
     volume = Column(Integer)
+
+    tank_type = Column(String)  # freshwater / marine / brackish
 
     owner_id = Column(Integer, ForeignKey("users.id"))
 
@@ -39,6 +42,7 @@ class WaterTest(Base):
     ammonia = Column(String)
     nitrite = Column(String)
     nitrate = Column(String)
+
     ph = Column(String)
     temperature = Column(String)
 
