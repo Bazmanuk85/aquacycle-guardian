@@ -1,10 +1,9 @@
 from datetime import datetime
 
 
-# -------------------------
+# -----------------------------
 # Nitrate Spike Detection
-# -------------------------
-
+# -----------------------------
 def nitrate_spike(values):
 
     if not values:
@@ -12,16 +11,12 @@ def nitrate_spike(values):
 
     latest = values[-1]
 
-    if latest is None:
-        return False
-
-    return latest > 40
+    return latest is not None and latest > 40
 
 
-# -------------------------
-# Cycle Stage Detection
-# -------------------------
-
+# -----------------------------
+# Cycle Detection
+# -----------------------------
 def detect_cycle_stage(tests):
 
     if not tests:
@@ -46,28 +41,26 @@ def detect_cycle_stage(tests):
     return "Unknown"
 
 
-# -------------------------
-# Cycle Progress %
-# -------------------------
-
+# -----------------------------
+# Cycle Progress
+# -----------------------------
 def cycle_progress(tests):
 
     stage = detect_cycle_stage(tests)
 
-    progress = {
+    progress_map = {
         "Early Cycle": 25,
         "Nitrite Phase": 50,
         "Late Cycle": 75,
         "Cycle Complete": 100
     }
 
-    return progress.get(stage, 10)
+    return progress_map.get(stage, 10)
 
 
-# -------------------------
-# Ammonia Alert
-# -------------------------
-
+# -----------------------------
+# Ammonia Warning
+# -----------------------------
 def ammonia_warning(tests):
 
     if not tests:
@@ -75,16 +68,12 @@ def ammonia_warning(tests):
 
     latest = tests[-1]
 
-    if latest.ammonia is None:
-        return False
-
-    return latest.ammonia > 0.5
+    return latest.ammonia is not None and latest.ammonia > 0.5
 
 
-# -------------------------
-# Temperature Alerts
-# -------------------------
-
+# -----------------------------
+# Temperature Alert
+# -----------------------------
 def temperature_alert(tests):
 
     if not tests:
@@ -95,24 +84,18 @@ def temperature_alert(tests):
     if latest.temperature is None:
         return None
 
-    temp = latest.temperature
+    if latest.temperature > 28:
+        return "High"
 
-    if temp >= 30:
-        return "Danger"
-
-    if temp >= 28:
-        return "Warning"
-
-    if temp <= 18:
+    if latest.temperature < 20:
         return "Low"
 
     return None
 
 
-# -------------------------
+# -----------------------------
 # Tank Health Score
-# -------------------------
-
+# -----------------------------
 def tank_health_score(tests):
 
     if not tests:
@@ -131,13 +114,8 @@ def tank_health_score(tests):
     if latest.nitrate and latest.nitrate > 40:
         score -= 20
 
-    if latest.temperature:
-
-        if latest.temperature >= 30 or latest.temperature <= 18:
-            score -= 15
-
-        elif latest.temperature >= 28:
-            score -= 8
+    if latest.temperature and (latest.temperature > 30 or latest.temperature < 18):
+        score -= 10
 
     if latest.ph and (latest.ph < 6 or latest.ph > 8.5):
         score -= 10
@@ -145,10 +123,9 @@ def tank_health_score(tests):
     return max(score, 0)
 
 
-# -------------------------
-# Water Change Needed From Tests
-# -------------------------
-
+# -----------------------------
+# Required Water Change (based on tests)
+# -----------------------------
 def required_water_change_from_tests(tests):
 
     if not tests:
@@ -182,10 +159,9 @@ def required_water_change_from_tests(tests):
     return required
 
 
-# -------------------------
-# Adjust Water Change After Changes
-# -------------------------
-
+# -----------------------------
+# Remaining Water Change Needed
+# -----------------------------
 def adjusted_water_change_recommendation(tests, water_changes):
 
     if not tests:
@@ -195,29 +171,30 @@ def adjusted_water_change_recommendation(tests, water_changes):
 
     required = required_water_change_from_tests(tests)
 
-    completed = 0
-
-    for wc in water_changes:
-
-        if wc.timestamp >= latest_test.timestamp:
-            completed += wc.percent
+    completed = sum(
+        wc.percent
+        for wc in water_changes
+        if wc.timestamp >= latest_test.timestamp
+    )
 
     remaining = required - completed
 
-    if remaining < 0:
-        remaining = 0
-
-    return round(remaining, 1)
+    return max(round(remaining, 1), 0)
 
 
-# -------------------------
+# -----------------------------
 # Weekly Maintenance Reminder
-# -------------------------
+# -----------------------------
+def maintenance_reminder(water_changes, tests):
 
-def maintenance_reminder(water_changes):
+    if not tests:
+        return None
 
     if not water_changes:
-        return 7
+        return {
+            "days": 7,
+            "message": "Weekly maintenance: 50% water change recommended"
+        }
 
     latest_change = water_changes[-1]
 
@@ -225,7 +202,13 @@ def maintenance_reminder(water_changes):
 
     remaining = 7 - days_since
 
-    if remaining < 0:
-        remaining = 0
+    if remaining <= 0:
+        return {
+            "days": 0,
+            "message": "Weekly maintenance: 50% water change recommended"
+        }
 
-    return remaining
+    return {
+        "days": remaining,
+        "message": None
+    }
