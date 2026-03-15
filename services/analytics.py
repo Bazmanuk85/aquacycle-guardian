@@ -2,6 +2,20 @@ from datetime import datetime
 
 
 # -----------------------------
+# Nitrate Spike Detection
+# -----------------------------
+
+def nitrate_spike(values):
+
+    if not values:
+        return False
+
+    latest = values[-1]
+
+    return latest is not None and latest > 40
+
+
+# -----------------------------
 # Cycle Detection
 # -----------------------------
 
@@ -116,7 +130,7 @@ def tank_health_score(tests):
 
 
 # -----------------------------
-# Required Water Change From Tests
+# Required Water Change (based on tests)
 # -----------------------------
 
 def required_water_change_from_tests(tests):
@@ -128,19 +142,16 @@ def required_water_change_from_tests(tests):
 
     required = 0
 
-    # ammonia logic
     if latest.ammonia:
         if latest.ammonia > 0.5:
             required = max(required, 60)
         elif latest.ammonia > 0.25:
             required = max(required, 40)
 
-    # nitrite logic
     if latest.nitrite:
         if latest.nitrite > 0.5:
             required = max(required, 40)
 
-    # nitrate logic
     if latest.nitrate:
         if latest.nitrate > 80:
             required = max(required, 40)
@@ -163,7 +174,6 @@ def adjusted_water_change_recommendation(tests, water_changes):
 
     required = required_water_change_from_tests(tests)
 
-    # only count changes AFTER the latest test
     completed = sum(
         wc.percent for wc in water_changes
         if wc.timestamp >= latest_test.timestamp
