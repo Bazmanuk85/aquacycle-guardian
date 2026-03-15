@@ -1,25 +1,24 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>AquaGuardian Login</title>
-</head>
+{% extends "base.html" %}
 
-<body>
+{% block content %}
+
+<div class="card">
 
 <h2>AquaGuardian</h2>
 
-<form action="/login" method="post">
+<form method="post" action="/login">
 
-<input name="username" placeholder="username">
-<input name="password" type="password" placeholder="password">
+<input name="username" placeholder="username"><br><br>
+<input name="password" type="password" placeholder="password"><br><br>
 
-<button type="submit">Login</button>
+<button>Login</button>
 
 </form>
 
 {% if error %}
-<p>{{ error }}</p>
+<p>{{error}}</p>
 {% endif %}
 
-</body>
-</html>
+</div>
+
+{% endblock %}
