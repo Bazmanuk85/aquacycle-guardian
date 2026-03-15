@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Request, Form, Depends
-from fastapi.responses import RedirectResponse
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
 
 import models
 from database import SessionLocal
@@ -18,6 +17,7 @@ from services.analytics import (
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
+
 
 def get_db():
     db = SessionLocal()
@@ -38,38 +38,10 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/create-tank")
-def create_tank_page(request: Request):
-
-    return templates.TemplateResponse(
-        "create_tank.html",
-        {"request": request}
-    )
-
-
-@router.post("/create-tank")
-def create_tank(
-    request: Request,
-    name: str = Form(...),
-    tank_type: str = Form(...),
-    db: Session = Depends(get_db)
-):
-
-    tank = models.Tank(name=name, tank_type=tank_type)
-
-    db.add(tank)
-    db.commit()
-
-    return RedirectResponse("/dashboard", status_code=303)
-
-
 @router.get("/tank/{tank_id}")
 def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
 
     tank = db.query(models.Tank).filter(models.Tank.id == tank_id).first()
-
-    if not tank:
-        return RedirectResponse("/dashboard", status_code=303)
 
     tests = db.query(models.WaterTest)\
         .filter(models.WaterTest.tank_id == tank_id)\
