@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
-from sqlalchemy.orm import relationship
 from datetime import datetime
 
 from database import Base
@@ -9,7 +8,7 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True)
-    username = Column(String, unique=True)
+    username = Column(String)
     password = Column(String)
 
 
@@ -19,13 +18,14 @@ class Tank(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     tank_type = Column(String)
+    size_litres = Column(Float)
 
 
 class WaterTest(Base):
     __tablename__ = "water_tests"
 
     id = Column(Integer, primary_key=True)
-    tank_id = Column(Integer, ForeignKey("tanks.id"))
+    tank_id = Column(Integer)
 
     ammonia = Column(Float, nullable=True)
     nitrite = Column(Float, nullable=True)
@@ -40,7 +40,8 @@ class WaterChange(Base):
     __tablename__ = "water_changes"
 
     id = Column(Integer, primary_key=True)
-    tank_id = Column(Integer, ForeignKey("tanks.id"))
+    tank_id = Column(Integer)
 
     percent = Column(Float)
+
     timestamp = Column(DateTime, default=datetime.utcnow)
