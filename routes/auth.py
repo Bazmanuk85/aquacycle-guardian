@@ -9,6 +9,7 @@ from database import SessionLocal
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -19,18 +20,27 @@ def get_db():
 
 @router.get("/")
 def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request}
+    )
 
 
 @router.post("/login")
-def login(request: Request,
-          username: str = Form(...),
-          password: str = Form(...),
-          db: Session = Depends(get_db)):
+def login(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
 
-    user = db.query(models.User).filter(models.User.username == username).first()
+    user = db.query(models.User).filter(
+        models.User.username == username
+    ).first()
 
     if not user or user.password != password:
+
         return templates.TemplateResponse(
             "login.html",
             {
@@ -47,6 +57,8 @@ def login(request: Request,
 
 @router.get("/logout")
 def logout():
+
     response = RedirectResponse("/", status_code=303)
     response.delete_cookie("user")
+
     return response
