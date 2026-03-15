@@ -12,21 +12,34 @@
 
 <p><b>Tank Health:</b> {{health}}%</p>
 
+<hr>
+
 {% if ammonia_alert %}
-<p style="color:red">⚠ Ammonia levels dangerous</p>
+<p style="color:red">⚠ Dangerous ammonia levels detected</p>
 {% endif %}
 
-{% if temp_alert == "High" %}
-<p style="color:orange">⚠ Temperature too high</p>
+{% if nitrate_alert %}
+<p style="color:orange">⚠ Nitrate spike detected</p>
+{% endif %}
+
+{% if temp_alert == "Danger" %}
+<p style="color:red">🔥 Temperature dangerously high</p>
+{% endif %}
+
+{% if temp_alert == "Warning" %}
+<p style="color:orange">⚠ Temperature approaching unsafe level</p>
 {% endif %}
 
 {% if temp_alert == "Low" %}
 <p style="color:orange">⚠ Temperature too low</p>
 {% endif %}
 
+<hr>
+
 <p><b>Water Change Required:</b> {{recommendation}}%</p>
 
 </div>
+
 
 <div class="card">
 
@@ -35,6 +48,12 @@
 <br><br>
 
 <a href="/water-change/{{tank.id}}">Log Water Change</a>
+
+<br><br>
+
+<form action="/delete-tank/{{tank.id}}" method="post">
+<button type="submit">Delete Tank</button>
+</form>
 
 </div>
 
