@@ -1,53 +1,26 @@
 {% extends "base.html" %}
-
 {% block content %}
 
-<div class="container">
+<h2>{{tank.name}}</h2>
 
-<h2>{{ tank.name }}</h2>
+<p>Tank Health: {{health_score}}%</p>
 
-<h3>Tank Health</h3>
-<p>{{ health_score }}%</p>
-
-<h3>Cycle Status</h3>
-<p>{{ cycle_stage }} ({{ cycle_percent }}%)</p>
+<p>Cycle Stage: {{cycle_stage}} ({{cycle_percent}}%)</p>
 
 {% if ammonia_alert %}
-<div class="alert alert-danger">
-Ammonia levels dangerous
-</div>
+<p style="color:red">Ammonia warning</p>
 {% endif %}
 
 {% if temp_alert %}
-<div class="alert alert-warning">
-Temperature issue detected
-</div>
+<p style="color:red">Temperature issue</p>
 {% endif %}
 
-<h3>Water Change Recommendation</h3>
-
-{% if recommendation and recommendation > 0 %}
-<p>{{ recommendation }}% water change required</p>
-{% else %}
-<p>No water change required</p>
-{% endif %}
-
-<h3>Maintenance Reminder</h3>
+<p>Water change required: {{recommendation}}%</p>
 
 {% if maintenance %}
-<p>{{ maintenance.days }} days until maintenance change</p>
+<p>Maintenance in {{maintenance.days}} days</p>
 {% endif %}
 
-<hr>
-
-<a href="/log-test/{{ tank.id }}">Log Water Test</a>
-<br>
-<a href="/log-change/{{ tank.id }}">Log Water Change</a>
-
-<br><br>
-
 <a href="/dashboard">Back</a>
-
-</div>
 
 {% endblock %}
