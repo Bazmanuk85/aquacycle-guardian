@@ -1,99 +1,18 @@
-<html>
+{% extends "base.html" %}
+{% block content %}
 
-<head>
+<h2>AquaGuardian Dashboard</h2>
 
-<title>AquaGuardian</title>
+<a href="/create-tank">Add Tank</a>
 
-<style>
-
-body{
-background:#020617;
-color:white;
-font-family:Arial;
-padding:30px;
-}
-
-.card{
-background:#0f172a;
-padding:20px;
-border-radius:10px;
-margin-bottom:20px;
-}
-
-button{
-background:#38bdf8;
-border:none;
-padding:8px;
-border-radius:6px;
-cursor:pointer;
-margin-right:5px;
-}
-
-.delete{
-background:#ef4444;
-}
-
-.alert{
-color:#f97316;
-margin-bottom:10px;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<h1>AquaGuardian</h1>
-
-<h3>Welcome {{ username }}</h3>
-
-<div class="card">
-
-<h3>Maintenance Alerts</h3>
-
-{% if alerts %}
-
-{% for alert in alerts %}
-
-<p class="alert">⚠ {{ alert }}</p>
-
-{% endfor %}
-
-{% else %}
-
-<p>No alerts</p>
-
-{% endif %}
-
-</div>
-
-<div class="card">
-
-<h3>Your Tanks</h3>
-
+<ul>
 {% for tank in tanks %}
-
-<p>
-
-<a href="/tank/{{ tank.id }}">
-<button>{{ tank.name }}</button>
-</a>
-
-<form action="/delete-tank/{{ tank.id }}" method="post" style="display:inline;">
-<button class="delete">Delete</button>
-</form>
-
-</p>
-
+<li>
+<a href="/tank/{{tank.id}}">{{tank.name}}</a>
+</li>
 {% endfor %}
+</ul>
 
-</div>
+<a href="/logout">Logout</a>
 
-<a href="/create-tank">
-<button>Add Tank</button>
-</a>
-
-</body>
-
-</html>
+{% endblock %}
