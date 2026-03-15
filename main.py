@@ -1,53 +1,33 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy.orm import Session
-
 import os
+
 import models
-from database import engine, SessionLocal
+from database import engine
 
 from routes import auth
 from routes import tanks
 
 app = FastAPI()
 
-# Create tables
+# -----------------------------
+# Create database tables
+# -----------------------------
 models.Base.metadata.create_all(bind=engine)
 
+# -----------------------------
 # Ensure static folder exists
+# -----------------------------
 if not os.path.exists("static"):
     os.makedirs("static")
 
+# -----------------------------
+# Mount static files
+# -----------------------------
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Include routers
+# -----------------------------
+# Register routers
+# -----------------------------
 app.include_router(auth.router)
 app.include_router(tanks.router)
-
-
-# ---------------------------
-# Ensure Default User Exists
-# ---------------------------
-
-def ensure_default_user():
-
-    db: Session = SessionLocal()
-
-    user = db.query(models.User).filter(
-        models.User.username == "admin"
-    ).first()
-
-    if not user:
-
-        new_user = models.User(
-            username="admin",
-            password="admin"
-        )
-
-        db.add(new_user)
-        db.commit()
-
-    db.close()
-
-
-ensure_default_user()
