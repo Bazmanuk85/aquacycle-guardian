@@ -1,22 +1,13 @@
 from datetime import datetime
 
 
-# -----------------------------
-# Nitrate Spike Detection
-# -----------------------------
 def nitrate_spike(values):
-
     if not values:
         return False
-
     latest = values[-1]
-
     return latest is not None and latest > 40
 
 
-# -----------------------------
-# Cycle Detection
-# -----------------------------
 def detect_cycle_stage(tests):
 
     if not tests:
@@ -41,9 +32,6 @@ def detect_cycle_stage(tests):
     return "Unknown"
 
 
-# -----------------------------
-# Cycle Progress
-# -----------------------------
 def cycle_progress(tests):
 
     stage = detect_cycle_stage(tests)
@@ -58,9 +46,6 @@ def cycle_progress(tests):
     return progress_map.get(stage, 10)
 
 
-# -----------------------------
-# Ammonia Warning
-# -----------------------------
 def ammonia_warning(tests):
 
     if not tests:
@@ -71,9 +56,6 @@ def ammonia_warning(tests):
     return latest.ammonia is not None and latest.ammonia > 0.5
 
 
-# -----------------------------
-# Temperature Alert
-# -----------------------------
 def temperature_alert(tests):
 
     if not tests:
@@ -93,9 +75,6 @@ def temperature_alert(tests):
     return None
 
 
-# -----------------------------
-# Tank Health Score
-# -----------------------------
 def tank_health_score(tests):
 
     if not tests:
@@ -123,9 +102,6 @@ def tank_health_score(tests):
     return max(score, 0)
 
 
-# -----------------------------
-# Required Water Change
-# -----------------------------
 def required_water_change_from_tests(tests):
 
     if not tests:
@@ -159,9 +135,6 @@ def required_water_change_from_tests(tests):
     return required
 
 
-# -----------------------------
-# Remaining Water Change Needed
-# -----------------------------
 def adjusted_water_change_recommendation(tests, water_changes):
 
     if not tests:
@@ -172,8 +145,7 @@ def adjusted_water_change_recommendation(tests, water_changes):
     required = required_water_change_from_tests(tests)
 
     completed = sum(
-        wc.percent
-        for wc in water_changes
+        wc.percent for wc in water_changes
         if wc.timestamp >= latest_test.timestamp
     )
 
@@ -182,9 +154,6 @@ def adjusted_water_change_recommendation(tests, water_changes):
     return max(round(remaining, 1), 0)
 
 
-# -----------------------------
-# Weekly Maintenance Reminder
-# -----------------------------
 def maintenance_reminder(water_changes, tests):
 
     if not tests:
