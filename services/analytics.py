@@ -124,7 +124,7 @@ def tank_health_score(tests):
 
 
 # -----------------------------
-# Required Water Change (based on tests)
+# Required Water Change
 # -----------------------------
 def required_water_change_from_tests(tests):
 
@@ -191,6 +191,7 @@ def maintenance_reminder(water_changes, tests):
         return None
 
     if not water_changes:
+
         return {
             "days": 7,
             "message": "Weekly maintenance: 50% water change recommended"
@@ -203,6 +204,7 @@ def maintenance_reminder(water_changes, tests):
     remaining = 7 - days_since
 
     if remaining <= 0:
+
         return {
             "days": 0,
             "message": "Weekly maintenance: 50% water change recommended"
