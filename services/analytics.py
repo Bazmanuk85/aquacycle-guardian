@@ -1,13 +1,6 @@
 from datetime import datetime
 
 
-def nitrate_spike(values):
-    if not values:
-        return False
-    latest = values[-1]
-    return latest is not None and latest > 40
-
-
 def detect_cycle_stage(tests):
 
     if not tests:
@@ -36,14 +29,14 @@ def cycle_progress(tests):
 
     stage = detect_cycle_stage(tests)
 
-    progress_map = {
+    mapping = {
         "Early Cycle": 25,
         "Nitrite Phase": 50,
         "Late Cycle": 75,
         "Cycle Complete": 100
     }
 
-    return progress_map.get(stage, 10)
+    return mapping.get(stage, 10)
 
 
 def ammonia_warning(tests):
@@ -93,46 +86,7 @@ def tank_health_score(tests):
     if latest.nitrate and latest.nitrate > 40:
         score -= 20
 
-    if latest.temperature and (latest.temperature > 30 or latest.temperature < 18):
-        score -= 10
-
-    if latest.ph and (latest.ph < 6 or latest.ph > 8.5):
-        score -= 10
-
     return max(score, 0)
-
-
-def required_water_change_from_tests(tests):
-
-    if not tests:
-        return 0
-
-    latest = tests[-1]
-
-    required = 0
-
-    if latest.ammonia:
-
-        if latest.ammonia > 0.5:
-            required = max(required, 60)
-
-        elif latest.ammonia > 0.25:
-            required = max(required, 40)
-
-    if latest.nitrite:
-
-        if latest.nitrite > 0.5:
-            required = max(required, 40)
-
-    if latest.nitrate:
-
-        if latest.nitrate > 80:
-            required = max(required, 40)
-
-        elif latest.nitrate > 40:
-            required = max(required, 25)
-
-    return required
 
 
 def adjusted_water_change_recommendation(tests, water_changes):
@@ -142,7 +96,7 @@ def adjusted_water_change_recommendation(tests, water_changes):
 
     latest_test = tests[-1]
 
-    required = required_water_change_from_tests(tests)
+    required = 40
 
     completed = sum(
         wc.percent for wc in water_changes
@@ -151,7 +105,7 @@ def adjusted_water_change_recommendation(tests, water_changes):
 
     remaining = required - completed
 
-    return max(round(remaining, 1), 0)
+    return max(remaining, 0)
 
 
 def maintenance_reminder(water_changes, tests):
@@ -160,11 +114,7 @@ def maintenance_reminder(water_changes, tests):
         return None
 
     if not water_changes:
-
-        return {
-            "days": 7,
-            "message": "Weekly maintenance: 50% water change recommended"
-        }
+        return {"days": 7}
 
     latest_change = water_changes[-1]
 
@@ -172,14 +122,4 @@ def maintenance_reminder(water_changes, tests):
 
     remaining = 7 - days_since
 
-    if remaining <= 0:
-
-        return {
-            "days": 0,
-            "message": "Weekly maintenance: 50% water change recommended"
-        }
-
-    return {
-        "days": remaining,
-        "message": None
-    }
+    return {"days": max(remaining, 0)}
