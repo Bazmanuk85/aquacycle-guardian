@@ -17,13 +17,7 @@ from services.analytics import (
 )
 
 router = APIRouter()
-
 templates = Jinja2Templates(directory="templates")
-
-
-# -----------------------------
-# Database Session
-# -----------------------------
 
 def get_db():
     db = SessionLocal()
@@ -33,10 +27,6 @@ def get_db():
         db.close()
 
 
-# -----------------------------
-# Dashboard
-# -----------------------------
-
 @router.get("/dashboard")
 def dashboard(request: Request, db: Session = Depends(get_db)):
 
@@ -44,16 +34,9 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
 
     return templates.TemplateResponse(
         "dashboard.html",
-        {
-            "request": request,
-            "tanks": tanks
-        }
+        {"request": request, "tanks": tanks}
     )
 
-
-# -----------------------------
-# Create Tank Page
-# -----------------------------
 
 @router.get("/create-tank")
 def create_tank_page(request: Request):
@@ -64,10 +47,6 @@ def create_tank_page(request: Request):
     )
 
 
-# -----------------------------
-# Create Tank Submit
-# -----------------------------
-
 @router.post("/create-tank")
 def create_tank(
     request: Request,
@@ -76,10 +55,7 @@ def create_tank(
     db: Session = Depends(get_db)
 ):
 
-    tank = models.Tank(
-        name=name,
-        tank_type=tank_type
-    )
+    tank = models.Tank(name=name, tank_type=tank_type)
 
     db.add(tank)
     db.commit()
@@ -87,28 +63,23 @@ def create_tank(
     return RedirectResponse("/dashboard", status_code=303)
 
 
-# -----------------------------
-# Tank Detail
-# -----------------------------
-
 @router.get("/tank/{tank_id}")
 def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
 
     tank = db.query(models.Tank).filter(models.Tank.id == tank_id).first()
 
-    tests = (
-        db.query(models.WaterTest)
-        .filter(models.WaterTest.tank_id == tank_id)
-        .order_by(models.WaterTest.timestamp)
-        .all()
-    )
+    if not tank:
+        return RedirectResponse("/dashboard", status_code=303)
 
-    water_changes = (
-        db.query(models.WaterChange)
-        .filter(models.WaterChange.tank_id == tank_id)
-        .order_by(models.WaterChange.timestamp)
+    tests = db.query(models.WaterTest)\
+        .filter(models.WaterTest.tank_id == tank_id)\
+        .order_by(models.WaterTest.timestamp)\
         .all()
-    )
+
+    water_changes = db.query(models.WaterChange)\
+        .filter(models.WaterChange.tank_id == tank_id)\
+        .order_by(models.WaterChange.timestamp)\
+        .all()
 
     cycle_stage = detect_cycle_stage(tests)
     cycle_percent = cycle_progress(tests)
@@ -118,15 +89,9 @@ def tank_detail(request: Request, tank_id: int, db: Session = Depends(get_db)):
 
     health_score = tank_health_score(tests)
 
-    recommendation = adjusted_water_change_recommendation(
-        tests,
-        water_changes
-    )
+    recommendation = adjusted_water_change_recommendation(tests, water_changes)
 
-    maintenance = maintenance_reminder(
-        water_changes,
-        tests
-    )
+    maintenance = maintenance_reminder(water_changes, tests)
 
     return templates.TemplateResponse(
         "tank.html",
