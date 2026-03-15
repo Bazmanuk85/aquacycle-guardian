@@ -1,24 +1,27 @@
 {% extends "base.html" %}
+
 {% block content %}
+
+<div class="card">
 
 <h2>Create Tank</h2>
 
-<form action="/create-tank" method="post">
+<form method="post">
 
-<label>Tank Name</label>
-<input name="name">
+<input name="name" placeholder="Tank Name"><br><br>
 
-<label>Type</label>
 <select name="tank_type">
 <option>Freshwater</option>
 <option>Marine</option>
 <option>Brackish</option>
-</select>
+</select><br><br>
 
-<button type="submit">Create Tank</button>
+<input name="size_litres" placeholder="Tank Size (litres)"><br><br>
+
+<button>Create</button>
 
 </form>
 
-<a href="/dashboard">Back</a>
+</div>
 
 {% endblock %}
