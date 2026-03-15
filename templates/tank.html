@@ -1,26 +1,32 @@
 {% extends "base.html" %}
+
 {% block content %}
+
+<div class="card">
 
 <h2>{{tank.name}}</h2>
 
-<p>Tank Health: {{health_score}}%</p>
+<p>Type: {{tank.tank_type}}</p>
+<p>Size: {{tank.size_litres}} L</p>
 
-<p>Cycle Stage: {{cycle_stage}} ({{cycle_percent}}%)</p>
+<h3>Tank Health</h3>
 
-{% if ammonia_alert %}
-<p style="color:red">Ammonia warning</p>
-{% endif %}
+<p>{{health}} / 100</p>
 
-{% if temp_alert %}
-<p style="color:red">Temperature issue</p>
-{% endif %}
+<h3>Water Change Recommendation</h3>
 
-<p>Water change required: {{recommendation}}%</p>
+<p>{{recommendation}} % required</p>
 
-{% if maintenance %}
-<p>Maintenance in {{maintenance.days}} days</p>
-{% endif %}
+<br>
 
-<a href="/dashboard">Back</a>
+<a href="/tank/{{tank.id}}/add-test">
+<button>Log Water Test</button>
+</a>
+
+<a href="/tank/{{tank.id}}/add-change">
+<button>Log Water Change</button>
+</a>
+
+</div>
 
 {% endblock %}
