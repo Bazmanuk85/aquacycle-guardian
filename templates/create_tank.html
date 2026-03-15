@@ -1,80 +1,24 @@
-<html>
+{% extends "base.html" %}
+{% block content %}
 
-<head>
+<h2>Create Tank</h2>
 
-<title>AquaGuardian</title>
-
-<style>
-
-body{
-background:#020617;
-color:white;
-font-family:Arial;
-padding:30px;
-}
-
-.card{
-background:#0f172a;
-padding:20px;
-border-radius:10px;
-max-width:420px;
-}
-
-input, select{
-width:100%;
-padding:10px;
-margin-bottom:15px;
-border-radius:6px;
-border:none;
-}
-
-button{
-background:#38bdf8;
-border:none;
-padding:10px;
-border-radius:6px;
-cursor:pointer;
-margin-right:10px;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<h1>Create Aquarium</h1>
-
-<div class="card">
-
-<form method="post" action="/create-tank">
+<form action="/create-tank" method="post">
 
 <label>Tank Name</label>
-<input name="name" required>
+<input name="name">
 
-<label>Volume (Litres)</label>
-<input type="number" name="volume" required>
-
-<label>Tank Type</label>
-
+<label>Type</label>
 <select name="tank_type">
-
-<option value="Freshwater">Freshwater</option>
-<option value="Marine">Marine</option>
-<option value="Brackish">Brackish</option>
-
+<option>Freshwater</option>
+<option>Marine</option>
+<option>Brackish</option>
 </select>
 
 <button type="submit">Create Tank</button>
 
-<a href="/dashboard">
-<button type="button">Back</button>
-</a>
-
 </form>
 
-</div>
+<a href="/dashboard">Back</a>
 
-</body>
-
-</html>
+{% endblock %}
