@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Request, Form
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
 
 import models
 from database import SessionLocal
@@ -15,19 +14,11 @@ router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-def db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 @router.get("/dashboard")
 def dashboard(request: Request):
 
-    database = SessionLocal()
-    tanks = database.query(models.Tank).all()
+    db = SessionLocal()
+    tanks = db.query(models.Tank).all()
 
     return templates.TemplateResponse(
         "dashboard.html",
@@ -45,14 +36,22 @@ def create_tank_page(request: Request):
 
 
 @router.post("/create-tank")
-def create_tank(name: str = Form(...), tank_type: str = Form(...)):
+def create_tank(
+        name: str = Form(...),
+        tank_type: str = Form(...),
+        size_litres: float = Form(...)
+):
 
-    database = SessionLocal()
+    db = SessionLocal()
 
-    tank = models.Tank(name=name, tank_type=tank_type)
+    tank = models.Tank(
+        name=name,
+        tank_type=tank_type,
+        size_litres=size_litres
+    )
 
-    database.add(tank)
-    database.commit()
+    db.add(tank)
+    db.commit()
 
     return RedirectResponse("/dashboard", status_code=303)
 
@@ -60,16 +59,16 @@ def create_tank(name: str = Form(...), tank_type: str = Form(...)):
 @router.get("/tank/{tank_id}")
 def tank_detail(request: Request, tank_id: int):
 
-    database = SessionLocal()
+    db = SessionLocal()
 
-    tank = database.query(models.Tank).get(tank_id)
+    tank = db.query(models.Tank).get(tank_id)
 
-    tests = database.query(models.WaterTest)\
+    tests = db.query(models.WaterTest)\
         .filter(models.WaterTest.tank_id == tank_id)\
         .order_by(models.WaterTest.timestamp)\
         .all()
 
-    changes = database.query(models.WaterChange)\
+    changes = db.query(models.WaterChange)\
         .filter(models.WaterChange.tank_id == tank_id)\
         .order_by(models.WaterChange.timestamp)\
         .all()
@@ -89,3 +88,67 @@ def tank_detail(request: Request, tank_id: int):
             "health": health
         }
     )
+
+
+@router.get("/tank/{tank_id}/add-test")
+def add_test_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "water_test.html",
+        {"request": request, "tank_id": tank_id}
+    )
+
+
+@router.post("/tank/{tank_id}/add-test")
+def add_test(
+        tank_id: int,
+        ammonia: float = Form(None),
+        nitrite: float = Form(None),
+        nitrate: float = Form(None),
+        ph: float = Form(None),
+        temperature: float = Form(None)
+):
+
+    db = SessionLocal()
+
+    test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=ammonia,
+        nitrite=nitrite,
+        nitrate=nitrate,
+        ph=ph,
+        temperature=temperature
+    )
+
+    db.add(test)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+
+
+@router.get("/tank/{tank_id}/add-change")
+def add_change_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "water_change.html",
+        {"request": request, "tank_id": tank_id}
+    )
+
+
+@router.post("/tank/{tank_id}/add-change")
+def add_change(
+        tank_id: int,
+        percent: float = Form(...)
+):
+
+    db = SessionLocal()
+
+    change = models.WaterChange(
+        tank_id=tank_id,
+        percent=percent
+    )
+
+    db.add(change)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
