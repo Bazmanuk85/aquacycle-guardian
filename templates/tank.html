@@ -1,177 +1,41 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<head>
-
-<title>{{tank.name}}</title>
-
-<style>
-
-body{
-background:#0f172a;
-font-family:Arial;
-color:white;
-margin:0;
-}
-
-.container{
-display:flex;
-justify-content:center;
-margin-top:30px;
-}
-
-.card{
-background:#1e293b;
-padding:30px;
-border-radius:10px;
-width:600px;
-}
-
-.progress{
-background:#334155;
-border-radius:8px;
-overflow:hidden;
-margin-top:6px;
-}
-
-.bar{
-height:18px;
-background:#22c55e;
-}
-
-.healthbar{
-background:#3b82f6;
-height:18px;
-}
-
-button{
-background:#3b82f6;
-border:none;
-padding:10px;
-border-radius:6px;
-color:white;
-cursor:pointer;
-margin-top:8px;
-}
-
-.delete{
-background:#dc2626;
-}
-
-.stat{
-margin-top:15px;
-}
-
-table{
-width:100%;
-margin-top:20px;
-border-collapse:collapse;
-}
-
-td,th{
-padding:8px;
-border-bottom:1px solid #334155;
-}
-
-</style>
-
-</head>
-
-<body>
-
-<div class="container">
+{% block content %}
 
 <div class="card">
 
 <h2>{{tank.name}}</h2>
 
-<div class="stat">
-Cycle Stage: {{cycle}}
-</div>
+<p><b>Tank Type:</b> {{tank.tank_type}}</p>
 
-<div class="progress">
-<div class="bar" style="width:{{cycle_progress}}%"></div>
-</div>
+<p><b>Cycle Stage:</b> {{cycle}}</p>
 
-<div class="stat">
-Tank Health: {{health}}%
-</div>
+<p><b>Tank Health:</b> {{health}}%</p>
 
-<div class="progress">
-<div class="healthbar" style="width:{{health}}%"></div>
-</div>
-
-<div class="stat">
-Total Water Dilution: {{total_dilution}}%
-</div>
-
-{% if recommendation %}
-<div class="stat">
-Recommended Water Change: {{recommendation}}%
-</div>
+{% if ammonia_alert %}
+<p style="color:red">⚠ Ammonia levels dangerous</p>
 {% endif %}
 
-<h3>Water Test History</h3>
+{% if temp_alert == "High" %}
+<p style="color:orange">⚠ Temperature too high</p>
+{% endif %}
 
-<table>
+{% if temp_alert == "Low" %}
+<p style="color:orange">⚠ Temperature too low</p>
+{% endif %}
 
-<tr>
-<th>Date</th>
-<th>Ammonia</th>
-<th>Nitrite</th>
-<th>Nitrate</th>
-<th>Temp</th>
-</tr>
-
-{% for t in tests %}
-
-<tr>
-<td>{{t.timestamp.strftime("%Y-%m-%d %H:%M")}}</td>
-<td>{{t.ammonia}}</td>
-<td>{{t.nitrite}}</td>
-<td>{{t.nitrate}}</td>
-<td>{{t.temperature}}</td>
-</tr>
-
-{% endfor %}
-
-</table>
-
-<h3>Water Changes</h3>
-
-<table>
-
-<tr>
-<th>Date</th>
-<th>%</th>
-</tr>
-
-{% for c in water_changes %}
-
-<tr>
-<td>{{c.timestamp.strftime("%Y-%m-%d %H:%M")}}</td>
-<td>{{c.percent}}</td>
-</tr>
-
-{% endfor %}
-
-</table>
-
-<a href="/add-test/{{tank.id}}">
-<button>Log Water Test</button>
-</a>
-
-<a href="/water-change/{{tank.id}}">
-<button>Log Water Change</button>
-</a>
-
-<form method="post" action="/delete-tank/{{tank.id}}">
-<button class="delete">Delete Tank</button>
-</form>
+<p><b>Water Change Required:</b> {{recommendation}}%</p>
 
 </div>
 
+<div class="card">
+
+<a href="/add-test/{{tank.id}}">Log Water Test</a>
+
+<br><br>
+
+<a href="/water-change/{{tank.id}}">Log Water Change</a>
+
 </div>
 
-</body>
-</html>
+{% endblock %}
