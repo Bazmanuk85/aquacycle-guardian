@@ -9,7 +9,7 @@ from routes import tanks
 
 app = FastAPI()
 
-# Create tables
+# Create database tables
 models.Base.metadata.create_all(bind=engine)
 
 # Ensure static folder exists
@@ -18,14 +18,12 @@ if not os.path.exists("static"):
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# Routers
+# Register routers
 app.include_router(auth.router)
 app.include_router(tanks.router)
 
 
-# -------------------------
-# Ensure default login user
-# -------------------------
+# Ensure default admin user exists
 def ensure_admin():
 
     db = SessionLocal()
