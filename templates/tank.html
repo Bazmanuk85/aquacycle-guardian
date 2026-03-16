@@ -6,16 +6,18 @@
 
 <h2>{{tank.name}}</h2>
 
-<p>Type: {{tank.tank_type}}</p>
-<p>Size: {{tank.size_litres}} L</p>
+<p><strong>Type:</strong> {{tank.tank_type}}</p>
+<p><strong>Size:</strong> {{tank.size_litres}} L</p>
 
 <h3>Tank Health</h3>
 
-<p>{{health}} / 100</p>
+<div class="health-score">
+    {{health}} / 100
+</div>
 
 <h3>Water Change Recommendation</h3>
 
-<p>{{recommendation}} % required</p>
+<p><strong>{{recommendation}} % water change recommended</strong></p>
 
 <br>
 
@@ -26,6 +28,64 @@
 <a href="/tank/{{tank.id}}/add-change">
 <button>Log Water Change</button>
 </a>
+
+</div>
+
+<br>
+
+<div class="card">
+
+<h3>Recent Water Tests</h3>
+
+<table>
+<tr>
+<th>Date</th>
+<th>Ammonia</th>
+<th>Nitrite</th>
+<th>Nitrate</th>
+<th>pH</th>
+<th>Temp</th>
+</tr>
+
+{% for test in tests|reverse %}
+
+<tr>
+<td>{{test.timestamp.strftime('%Y-%m-%d')}}</td>
+<td>{{test.ammonia}}</td>
+<td>{{test.nitrite}}</td>
+<td>{{test.nitrate}}</td>
+<td>{{test.ph}}</td>
+<td>{{test.temperature}}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+<br>
+
+<div class="card">
+
+<h3>Water Change History</h3>
+
+<table>
+<tr>
+<th>Date</th>
+<th>Percent</th>
+</tr>
+
+{% for change in changes|reverse %}
+
+<tr>
+<td>{{change.timestamp.strftime('%Y-%m-%d')}}</td>
+<td>{{change.percent}}%</td>
+</tr>
+
+{% endfor %}
+
+</table>
 
 </div>
 
