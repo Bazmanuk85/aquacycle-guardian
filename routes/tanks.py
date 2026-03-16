@@ -8,7 +8,7 @@ from database import SessionLocal
 from services.analytics import (
     adjusted_water_change_recommendation,
     tank_health_score,
-    generate_alerts
+    generate_ai_recommendations
 )
 
 router = APIRouter()
@@ -40,7 +40,7 @@ def dashboard(request: Request):
 
         health = tank_health_score(tests)
 
-        alerts = generate_alerts(tests)
+        alerts = generate_ai_recommendations(tests)
 
         tank_data.append({
             "tank": tank,
@@ -110,7 +110,7 @@ def tank_detail(request: Request, tank_id: int):
 
     health = tank_health_score(tests)
 
-    alerts = generate_alerts(tests)
+    alerts = generate_ai_recommendations(tests)
 
     return templates.TemplateResponse(
         "tank.html",
