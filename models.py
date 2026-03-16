@@ -21,10 +21,23 @@ class Tank(Base):
     size_litres = Column(Float)
 
 
+class Fish(Base):
+    __tablename__ = "fish"
+
+    id = Column(Integer, primary_key=True)
+
+    tank_id = Column(Integer)
+
+    species = Column(String)
+
+    quantity = Column(Integer)
+
+
 class WaterTest(Base):
     __tablename__ = "water_tests"
 
     id = Column(Integer, primary_key=True)
+
     tank_id = Column(Integer)
 
     ammonia = Column(Float, nullable=True)
@@ -40,6 +53,7 @@ class WaterChange(Base):
     __tablename__ = "water_changes"
 
     id = Column(Integer, primary_key=True)
+
     tank_id = Column(Integer)
 
     percent = Column(Float)
