@@ -11,6 +11,8 @@ from services.analytics import (
     generate_ai_recommendations
 )
 
+from services.fish_species import get_fish_list
+
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
@@ -123,57 +125,93 @@ def tank_detail(request: Request, tank_id: int):
     )
 
 
-@router.get("/tank/{tank_id}/edit")
-def edit_tank_page(request: Request, tank_id: int):
+# LOG WATER TEST
 
-    db = SessionLocal()
-
-    tank = db.get(models.Tank, tank_id)
+@router.get("/tank/{tank_id}/add-test")
+def add_test_page(request: Request, tank_id: int):
 
     return templates.TemplateResponse(
-        "edit_tank.html",
-        {"request": request, "tank": tank}
+        "water_test.html",
+        {"request": request, "tank_id": tank_id}
     )
 
 
-@router.post("/tank/{tank_id}/edit")
-def edit_tank(
+@router.post("/tank/{tank_id}/add-test")
+def add_test(
         tank_id: int,
-        name: str = Form(...),
-        size_litres: float = Form(...)
+        ammonia: float = Form(None),
+        nitrite: float = Form(None),
+        nitrate: float = Form(None),
+        ph: float = Form(None),
+        temperature: float = Form(None)
 ):
 
     db = SessionLocal()
 
-    tank = db.get(models.Tank, tank_id)
+    test = models.WaterTest(
+        tank_id=tank_id,
+        ammonia=ammonia,
+        nitrite=nitrite,
+        nitrate=nitrate,
+        ph=ph,
+        temperature=temperature
+    )
 
-    tank.name = name
-    tank.size_litres = size_litres
-
+    db.add(test)
     db.commit()
 
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
 
 
-@router.post("/tank/{tank_id}/delete")
-def delete_tank(tank_id: int):
+# LOG WATER CHANGE
+
+@router.get("/tank/{tank_id}/add-change")
+def add_change_page(request: Request, tank_id: int):
+
+    return templates.TemplateResponse(
+        "water_change.html",
+        {"request": request, "tank_id": tank_id}
+    )
+
+
+@router.post("/tank/{tank_id}/add-change")
+def add_change(
+        tank_id: int,
+        percent: float = Form(...)
+):
+
+    db = SessionLocal()
+
+    change = models.WaterChange(
+        tank_id=tank_id,
+        percent=percent
+    )
+
+    db.add(change)
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+
+
+# ADD FISH
+
+@router.get("/tank/{tank_id}/add-fish")
+def add_fish_page(request: Request, tank_id: int):
 
     db = SessionLocal()
 
     tank = db.get(models.Tank, tank_id)
 
-    db.delete(tank)
-    db.commit()
-
-    return RedirectResponse("/dashboard", status_code=303)
-
-
-@router.get("/tank/{tank_id}/add-fish")
-def add_fish_page(request: Request, tank_id: int):
+    fish_list = get_fish_list(tank.tank_type)
 
     return templates.TemplateResponse(
         "add_fish.html",
-        {"request": request, "tank_id": tank_id}
+        {
+            "request": request,
+            "tank": tank,
+            "tank_id": tank_id,
+            "fish_list": fish_list
+        }
     )
 
 
