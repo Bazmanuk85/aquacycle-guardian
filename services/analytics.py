@@ -9,19 +9,19 @@ def required_water_change_from_tests(tests):
     latest = tests[-1]
     required = 0
 
-    if latest.ammonia and latest.ammonia > 0.5:
+    if latest.ammonia is not None and latest.ammonia > 0.5:
         required = max(required, 60)
 
-    if latest.ammonia and latest.ammonia > 0.25:
+    if latest.ammonia is not None and latest.ammonia > 0.25:
         required = max(required, 40)
 
-    if latest.nitrite and latest.nitrite > 0.5:
+    if latest.nitrite is not None and latest.nitrite > 0.5:
         required = max(required, 40)
 
-    if latest.nitrate and latest.nitrate > 80:
+    if latest.nitrate is not None and latest.nitrate > 80:
         required = max(required, 40)
 
-    if latest.nitrate and latest.nitrate > 40:
+    if latest.nitrate is not None and latest.nitrate > 40:
         required = max(required, 25)
 
     return required
@@ -54,16 +54,43 @@ def tank_health_score(tests):
     latest = tests[-1]
     score = 100
 
-    if latest.ammonia and latest.ammonia > 0.25:
+    if latest.ammonia is not None and latest.ammonia > 0.25:
         score -= 40
 
-    if latest.nitrite and latest.nitrite > 0.25:
+    if latest.nitrite is not None and latest.nitrite > 0.25:
         score -= 30
 
-    if latest.nitrate and latest.nitrate > 40:
+    if latest.nitrate is not None and latest.nitrate > 40:
         score -= 20
 
-    if latest.temperature and (latest.temperature > 30 or latest.temperature < 18):
+    if latest.temperature is not None and (latest.temperature > 30 or latest.temperature < 18):
         score -= 10
 
     return max(score, 0)
+
+
+def generate_alerts(tests):
+
+    alerts = []
+
+    if not tests:
+        return alerts
+
+    latest = tests[-1]
+
+    if latest.ammonia is not None and latest.ammonia > 0:
+        alerts.append("🚨 Ammonia detected — immediate water change recommended")
+
+    if latest.nitrite is not None and latest.nitrite > 0:
+        alerts.append("🚨 Nitrite detected — toxic to fish")
+
+    if latest.nitrate is not None and latest.nitrate > 50:
+        alerts.append("⚠ High nitrate level — schedule a water change")
+
+    if latest.temperature is not None and latest.temperature > 30:
+        alerts.append("⚠ Water temperature too high")
+
+    if latest.temperature is not None and latest.temperature < 18:
+        alerts.append("⚠ Water temperature too low")
+
+    return alerts
