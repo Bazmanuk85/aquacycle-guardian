@@ -10,11 +10,9 @@
 <p>Size: {{tank.size_litres}} L</p>
 
 <h3>Tank Health</h3>
-
 <p>{{health}} / 100</p>
 
 <h3>Water Change Recommendation</h3>
-
 <p>{{recommendation}} % required</p>
 
 <br>
@@ -27,6 +25,101 @@
 <button>Log Water Change</button>
 </a>
 
+<br><br>
+
+<h3>Water Parameter History</h3>
+
+<canvas id="waterChart" width="350" height="200"></canvas>
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const labels = [
+{% for test in tests %}
+"{{test.timestamp.strftime('%Y-%m-%d')}}",
+{% endfor %}
+]
+
+const ammonia = [
+{% for test in tests %}
+{{test.ammonia or 0}},
+{% endfor %}
+]
+
+const nitrite = [
+{% for test in tests %}
+{{test.nitrite or 0}},
+{% endfor %}
+]
+
+const nitrate = [
+{% for test in tests %}
+{{test.nitrate or 0}},
+{% endfor %}
+]
+
+const temperature = [
+{% for test in tests %}
+{{test.temperature or 0}},
+{% endfor %}
+]
+
+const ctx = document.getElementById('waterChart').getContext('2d');
+
+new Chart(ctx, {
+type: 'line',
+data: {
+labels: labels,
+datasets: [
+{
+label: 'Ammonia',
+data: ammonia,
+borderColor: 'red',
+fill: false
+},
+{
+label: 'Nitrite',
+data: nitrite,
+borderColor: 'orange',
+fill: false
+},
+{
+label: 'Nitrate',
+data: nitrate,
+borderColor: 'green',
+fill: false
+},
+{
+label: 'Temperature',
+data: temperature,
+borderColor: 'blue',
+fill: false
+}
+]
+},
+options: {
+responsive: true,
+plugins: {
+legend: {
+labels: {
+color: 'white'
+}
+}
+},
+scales: {
+x: {
+ticks: { color: 'white' }
+},
+y: {
+ticks: { color: 'white' }
+}
+}
+}
+})
+
+</script>
 
 {% endblock %}
