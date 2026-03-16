@@ -69,23 +69,6 @@ def tank_health_score(tests):
     return max(score, 0)
 
 
-def water_quality_stats(tests):
-
-    if not tests:
-        return {}
-
-    latest = tests[-1]
-
-    stats = {
-        "ammonia": latest.ammonia,
-        "nitrite": latest.nitrite,
-        "nitrate": latest.nitrate,
-        "temperature": latest.temperature
-    }
-
-    return stats
-
-
 def detect_trend(values):
 
     if len(values) < 3:
@@ -98,6 +81,28 @@ def detect_trend(values):
         return "falling"
 
     return "stable"
+
+
+def estimate_days_to_threshold(values, threshold):
+
+    if len(values) < 3:
+        return None
+
+    v1, v2, v3 = values[-3], values[-2], values[-1]
+
+    rate = (v3 - v1) / 2
+
+    if rate <= 0:
+        return None
+
+    remaining = threshold - v3
+
+    if remaining <= 0:
+        return 0
+
+    days = remaining / rate
+
+    return round(days, 1)
 
 
 def generate_ai_recommendations(tests):
@@ -117,36 +122,48 @@ def generate_ai_recommendations(tests):
     nitrite_trend = detect_trend(nitrite_values)
     temp_trend = detect_trend(temp_values)
 
-    # Ammonia danger
+    # Immediate issues
+
     if latest.ammonia is not None and latest.ammonia > 0:
         alerts.append("🚨 Ammonia detected — perform immediate water change")
 
-    # Nitrite danger
     if latest.nitrite is not None and latest.nitrite > 0.25:
         alerts.append("🚨 Nitrite dangerously high — toxic to fish")
 
-    # Nitrite trend
-    if nitrite_trend == "rising":
-        alerts.append("⚠ Nitrite increasing trend detected")
-
-    # Nitrate high
     if latest.nitrate is not None and latest.nitrate > 50:
         alerts.append("⚠ Nitrate high — schedule water change")
 
-    # Nitrate trend
-    if nitrate_trend == "rising":
-        alerts.append("📈 Nitrate trending upward — water quality declining")
-
-    # Temperature high
     if latest.temperature is not None and latest.temperature > 30:
         alerts.append("🔥 Temperature too high — risk of oxygen depletion")
 
-    # Temperature low
     if latest.temperature is not None and latest.temperature < 18:
         alerts.append("❄ Temperature too low for most tropical fish")
 
-    # Temperature trend
+    # Trend alerts
+
+    if nitrate_trend == "rising":
+        alerts.append("📈 Nitrate trending upward — water quality declining")
+
+    if nitrite_trend == "rising":
+        alerts.append("📈 Nitrite increasing trend detected")
+
     if temp_trend == "rising":
-        alerts.append("📈 Temperature increasing trend detected")
+        alerts.append("📈 Temperature rising trend detected")
+
+    # Predictive alerts
+
+    nitrate_days = estimate_days_to_threshold(nitrate_values, 80)
+
+    if nitrate_days and nitrate_days > 0:
+        alerts.append(
+            f"📊 Nitrate may exceed safe level in ~{nitrate_days} days"
+        )
+
+    temp_days = estimate_days_to_threshold(temp_values, 30)
+
+    if temp_days and temp_days > 0:
+        alerts.append(
+            f"🌡 Temperature may exceed safe range in ~{temp_days} days"
+        )
 
     return alerts
