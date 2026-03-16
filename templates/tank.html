@@ -6,18 +6,15 @@
 
 <h2>{{tank.name}}</h2>
 
-<p>Type: {{tank.tank_type}}</p>
-<p>Size: {{tank.size_litres}} L</p>
+<p>{{tank.tank_type}} • {{tank.size_litres}} L</p>
 
 <h3>Tank Health</h3>
 
-<p>{{health}} / 100</p>
+<p style="font-size:22px">{{health}} / 100</p>
 
 <h3>Water Change Recommendation</h3>
 
-<p>{{recommendation}} % required</p>
-
-<br>
+<p style="font-size:20px">{{recommendation}} % required</p>
 
 <a href="/tank/{{tank.id}}/add-test">
 <button>Log Water Test</button>
@@ -28,5 +25,129 @@
 </a>
 
 </div>
+
+<div class="card">
+
+<h3>Water Parameter History</h3>
+
+<div class="graph-container">
+
+<canvas id="waterChart" height="300"></canvas>
+
+</div>
+
+</div>
+
+<div class="card">
+
+<h3>Water Test History</h3>
+
+<table>
+
+<tr>
+<th>Date</th>
+<th>Ammonia</th>
+<th>Nitrite</th>
+<th>Nitrate</th>
+<th>pH</th>
+<th>Temp</th>
+</tr>
+
+{% for test in tests %}
+
+<tr>
+
+<td>{{test.timestamp.strftime('%Y-%m-%d')}}</td>
+<td>{{test.ammonia}}</td>
+<td>{{test.nitrite}}</td>
+<td>{{test.nitrate}}</td>
+<td>{{test.ph}}</td>
+<td>{{test.temperature}}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+
+const labels = [
+{% for test in tests %}
+"{{test.timestamp.strftime('%Y-%m-%d')}}",
+{% endfor %}
+]
+
+const ammonia = [
+{% for test in tests %}
+{{test.ammonia or 0}},
+{% endfor %}
+]
+
+const nitrite = [
+{% for test in tests %}
+{{test.nitrite or 0}},
+{% endfor %}
+]
+
+const nitrate = [
+{% for test in tests %}
+{{test.nitrate or 0}},
+{% endfor %}
+]
+
+const temperature = [
+{% for test in tests %}
+{{test.temperature or 0}},
+{% endfor %}
+]
+
+const ctx = document.getElementById('waterChart')
+
+new Chart(ctx,{
+type:'line',
+data:{
+labels:labels,
+datasets:[
+{
+label:'Ammonia',
+data:ammonia,
+borderColor:'#ff4d4d'
+},
+{
+label:'Nitrite',
+data:nitrite,
+borderColor:'#ffa64d'
+},
+{
+label:'Nitrate',
+data:nitrate,
+borderColor:'#66ff66'
+},
+{
+label:'Temperature',
+data:temperature,
+borderColor:'#4da6ff'
+}
+]
+},
+options:{
+plugins:{
+legend:{
+labels:{color:"white"}
+}
+},
+scales:{
+x:{ticks:{color:"white"}},
+y:{ticks:{color:"white"}}
+}
+}
+})
+
+</script>
 
 {% endblock %}
