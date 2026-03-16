@@ -20,7 +20,21 @@
 
 <div class="card" style="width:380px;">
 
-<h3>{{item.tank.name}}</h3>
+<h2>
+
+{% if item.tank.tank_type|lower == "reef" or item.tank.tank_type|lower == "marine" %}
+🪸
+{% elif item.tank.tank_type|lower == "planted" %}
+🌿
+{% elif item.tank.tank_type|lower == "freshwater" %}
+🐟
+{% else %}
+🐠
+{% endif %}
+
+{{item.tank.name}}
+
+</h2>
 
 <p><strong>Type:</strong> {{item.tank.tank_type}}</p>
 <p><strong>Size:</strong> {{item.tank.size_litres}} L</p>
@@ -78,6 +92,7 @@
 
 </div>
 
+
 <script>
 
 const nitrateCtx{{item.tank.id}} = document.getElementById('nitrate{{item.tank.id}}');
@@ -91,7 +106,6 @@ labels: [
 {% endfor %}
 ],
 datasets: [{
-label: 'Nitrate',
 data: [
 {% for test in item.tests %}
 {{test.nitrate or 0}},
@@ -100,7 +114,7 @@ data: [
 borderWidth: 2
 }]
 },
-options:{responsive:true,plugins:{legend:{display:false}}}
+options:{plugins:{legend:{display:false}}}
 });
 
 const tempCtx{{item.tank.id}} = document.getElementById('temp{{item.tank.id}}');
@@ -114,7 +128,6 @@ labels: [
 {% endfor %}
 ],
 datasets: [{
-label: 'Temperature',
 data: [
 {% for test in item.tests %}
 {{test.temperature or 0}},
@@ -123,35 +136,7 @@ data: [
 borderWidth: 2
 }]
 },
-options:{responsive:true,plugins:{legend:{display:false}}}
-});
-
-const healthCtx{{item.tank.id}} = document.getElementById('health{{item.tank.id}}');
-
-new Chart(healthCtx{{item.tank.id}}, {
-type: 'line',
-data: {
-labels: [
-{% for test in item.tests %}
-"{{test.timestamp.strftime('%m-%d')}}",
-{% endfor %}
-],
-datasets: [{
-label: 'Water Quality Score',
-data: [
-{% for test in item.tests %}
-{% set score = 100 %}
-{% if test.ammonia and test.ammonia > 0.25 %}{% set score = score - 40 %}{% endif %}
-{% if test.nitrite and test.nitrite > 0.25 %}{% set score = score - 30 %}{% endif %}
-{% if test.nitrate and test.nitrate > 40 %}{% set score = score - 20 %}{% endif %}
-{% if test.temperature and (test.temperature > 30 or test.temperature < 18) %}{% set score = score - 10 %}{% endif %}
-{{score}},
-{% endfor %}
-],
-borderWidth: 2
-}]
-},
-options:{responsive:true,plugins:{legend:{display:false}}}
+options:{plugins:{legend:{display:false}}}
 });
 
 </script>
