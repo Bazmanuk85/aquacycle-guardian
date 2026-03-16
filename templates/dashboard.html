@@ -18,7 +18,7 @@
 
 {% for item in tank_data %}
 
-<div class="card" style="width:360px;">
+<div class="card" style="width:380px;">
 
 <h3>{{item.tank.name}}</h3>
 
@@ -38,7 +38,6 @@
 <h4>Water Change Recommendation</h4>
 
 <p><strong>{{item.recommendation}} % recommended</strong></p>
-
 
 <h4>Alerts</h4>
 
@@ -62,8 +61,14 @@
 
 {% endif %}
 
+<h4>Nitrate Trend</h4>
+<canvas id="nitrate{{item.tank.id}}" height="120"></canvas>
 
-<canvas id="chart{{item.tank.id}}" height="140"></canvas>
+<h4>Temperature Trend</h4>
+<canvas id="temp{{item.tank.id}}" height="120"></canvas>
+
+<h4>Water Quality Score</h4>
+<canvas id="health{{item.tank.id}}" height="120"></canvas>
 
 <br>
 
@@ -73,12 +78,11 @@
 
 </div>
 
-
 <script>
 
-const ctx{{item.tank.id}} = document.getElementById('chart{{item.tank.id}}');
+const nitrateCtx{{item.tank.id}} = document.getElementById('nitrate{{item.tank.id}}');
 
-new Chart(ctx{{item.tank.id}}, {
+new Chart(nitrateCtx{{item.tank.id}}, {
 type: 'line',
 data: {
 labels: [
@@ -96,12 +100,58 @@ data: [
 borderWidth: 2
 }]
 },
-options: {
-responsive:true,
-plugins:{
-legend:{display:false}
-}
-}
+options:{responsive:true,plugins:{legend:{display:false}}}
+});
+
+const tempCtx{{item.tank.id}} = document.getElementById('temp{{item.tank.id}}');
+
+new Chart(tempCtx{{item.tank.id}}, {
+type: 'line',
+data: {
+labels: [
+{% for test in item.tests %}
+"{{test.timestamp.strftime('%m-%d')}}",
+{% endfor %}
+],
+datasets: [{
+label: 'Temperature',
+data: [
+{% for test in item.tests %}
+{{test.temperature or 0}},
+{% endfor %}
+],
+borderWidth: 2
+}]
+},
+options:{responsive:true,plugins:{legend:{display:false}}}
+});
+
+const healthCtx{{item.tank.id}} = document.getElementById('health{{item.tank.id}}');
+
+new Chart(healthCtx{{item.tank.id}}, {
+type: 'line',
+data: {
+labels: [
+{% for test in item.tests %}
+"{{test.timestamp.strftime('%m-%d')}}",
+{% endfor %}
+],
+datasets: [{
+label: 'Water Quality Score',
+data: [
+{% for test in item.tests %}
+{% set score = 100 %}
+{% if test.ammonia and test.ammonia > 0.25 %}{% set score = score - 40 %}{% endif %}
+{% if test.nitrite and test.nitrite > 0.25 %}{% set score = score - 30 %}{% endif %}
+{% if test.nitrate and test.nitrate > 40 %}{% set score = score - 20 %}{% endif %}
+{% if test.temperature and (test.temperature > 30 or test.temperature < 18) %}{% set score = score - 10 %}{% endif %}
+{{score}},
+{% endfor %}
+],
+borderWidth: 2
+}]
+},
+options:{responsive:true,plugins:{legend:{display:false}}}
 });
 
 </script>
