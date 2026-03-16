@@ -29,7 +29,9 @@
 
 <h3>Water Parameter History</h3>
 
-<canvas id="waterChart" width="350" height="200"></canvas>
+<div style="width:100%; background:#0b1d2a; padding:20px; border-radius:10px;">
+<canvas id="waterChart" height="300"></canvas>
+</div>
 
 </div>
 
@@ -67,7 +69,7 @@ const temperature = [
 {% endfor %}
 ]
 
-const ctx = document.getElementById('waterChart').getContext('2d');
+const ctx = document.getElementById('waterChart');
 
 new Chart(ctx, {
 type: 'line',
@@ -77,48 +79,47 @@ datasets: [
 {
 label: 'Ammonia',
 data: ammonia,
-borderColor: 'red',
-fill: false
+borderColor: '#ff4d4d',
+backgroundColor: 'transparent'
 },
 {
 label: 'Nitrite',
 data: nitrite,
-borderColor: 'orange',
-fill: false
+borderColor: '#ffa64d',
+backgroundColor: 'transparent'
 },
 {
 label: 'Nitrate',
 data: nitrate,
-borderColor: 'green',
-fill: false
+borderColor: '#66ff66',
+backgroundColor: 'transparent'
 },
 {
 label: 'Temperature',
 data: temperature,
-borderColor: 'blue',
-fill: false
+borderColor: '#4da6ff',
+backgroundColor: 'transparent'
 }
 ]
 },
 options: {
-responsive: true,
 plugins: {
 legend: {
 labels: {
-color: 'white'
+color: "white"
 }
 }
 },
 scales: {
 x: {
-ticks: { color: 'white' }
+ticks: { color: "white" }
 },
 y: {
-ticks: { color: 'white' }
+ticks: { color: "white" }
 }
 }
 }
-})
+});
 
 </script>
 
