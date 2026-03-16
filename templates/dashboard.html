@@ -1,18 +1,31 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<h2>AquaGuardian Dashboard</h2>
+<div class="card">
 
-<a href="/create-tank">Add Tank</a>
+<h2>Your Tanks</h2>
 
-<ul>
+<a href="/create-tank">
+<button>Create Tank</button>
+</a>
+
+</div>
+
 {% for tank in tanks %}
-<li>
-<a href="/tank/{{tank.id}}">{{tank.name}}</a>
-</li>
-{% endfor %}
-</ul>
 
-<a href="/logout">Logout</a>
+<div class="card">
+
+<h3>{{tank.name}}</h3>
+
+<p>{{tank.tank_type}} • {{tank.size_litres}} L</p>
+
+<a href="/tank/{{tank.id}}">
+<button>Open Tank</button>
+</a>
+
+</div>
+
+{% endfor %}
 
 {% endblock %}
