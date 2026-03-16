@@ -10,11 +10,25 @@
 
 <h3>Tank Health</h3>
 
-<p style="font-size:22px">{{health}} / 100</p>
+<div style="background:#1e3a50;border-radius:8px;">
+<div style="width:{{health}}%;background:#4caf50;padding:6px;border-radius:8px;">
+</div>
+</div>
+
+<p>{{health}} / 100</p>
+
+<h3>Cycle Progress</h3>
+
+<div style="background:#1e3a50;border-radius:8px;">
+<div style="width:{{cycle_progress}}%;background:#ff9800;padding:6px;border-radius:8px;">
+</div>
+</div>
+
+<p>{{cycle_stage}}</p>
 
 <h3>Water Change Recommendation</h3>
 
-<p style="font-size:20px">{{recommendation}} % required</p>
+<p>{{recommendation}} % required</p>
 
 <a href="/tank/{{tank.id}}/add-test">
 <button>Log Water Test</button>
@@ -28,47 +42,25 @@
 
 <div class="card">
 
-<h3>Water Parameter History</h3>
+<h3>AI Recommendation</h3>
 
-<div class="graph-container">
+<ul>
 
-<canvas id="waterChart" height="300"></canvas>
+{% for advice in ai_advice %}
 
-</div>
+<li>{{advice}}</li>
+
+{% endfor %}
+
+</ul>
 
 </div>
 
 <div class="card">
 
-<h3>Water Test History</h3>
+<h3>Water Parameter History</h3>
 
-<table>
-
-<tr>
-<th>Date</th>
-<th>Ammonia</th>
-<th>Nitrite</th>
-<th>Nitrate</th>
-<th>pH</th>
-<th>Temp</th>
-</tr>
-
-{% for test in tests %}
-
-<tr>
-
-<td>{{test.timestamp.strftime('%Y-%m-%d')}}</td>
-<td>{{test.ammonia}}</td>
-<td>{{test.nitrite}}</td>
-<td>{{test.nitrate}}</td>
-<td>{{test.ph}}</td>
-<td>{{test.temperature}}</td>
-
-</tr>
-
-{% endfor %}
-
-</table>
+<canvas id="waterChart" height="300"></canvas>
 
 </div>
 
@@ -113,38 +105,11 @@ type:'line',
 data:{
 labels:labels,
 datasets:[
-{
-label:'Ammonia',
-data:ammonia,
-borderColor:'#ff4d4d'
-},
-{
-label:'Nitrite',
-data:nitrite,
-borderColor:'#ffa64d'
-},
-{
-label:'Nitrate',
-data:nitrate,
-borderColor:'#66ff66'
-},
-{
-label:'Temperature',
-data:temperature,
-borderColor:'#4da6ff'
-}
+{label:'Ammonia',data:ammonia,borderColor:'#ff4d4d'},
+{label:'Nitrite',data:nitrite,borderColor:'#ffa64d'},
+{label:'Nitrate',data:nitrate,borderColor:'#66ff66'},
+{label:'Temperature',data:temperature,borderColor:'#4da6ff'}
 ]
-},
-options:{
-plugins:{
-legend:{
-labels:{color:"white"}
-}
-},
-scales:{
-x:{ticks:{color:"white"}},
-y:{ticks:{color:"white"}}
-}
 }
 })
 
