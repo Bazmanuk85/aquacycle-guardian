@@ -2,17 +2,92 @@
 
 {% block content %}
 
+<style>
+
+.fish-selector {
+height: 350px;
+overflow-y: scroll;
+border: 1px solid #2e4b63;
+border-radius: 10px;
+padding: 10px;
+background: #0b1d2a;
+text-align: left;
+}
+
+.fish-item {
+padding: 4px 0;
+}
+
+.letter {
+font-weight: bold;
+margin-top: 12px;
+}
+
+.az-nav {
+margin-bottom: 10px;
+}
+
+.az-nav a {
+margin-right: 6px;
+font-size: 14px;
+color: #6bb7ff;
+text-decoration: none;
+}
+
+</style>
+
+
 <div class="card">
 
-<h2>Add Fish</h2>
+<h2>Add Fish to {{tank.name}}</h2>
+
+<p>Tank Type: {{tank.tank_type}}</p>
 
 <form method="post">
 
-<input type="text" name="species" placeholder="Species (e.g. Neon Tetra)" required>
+<label>Select Species</label>
+
+<div class="az-nav">
+
+{% for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ" %}
+<a href="#{{letter}}">{{letter}}</a>
+{% endfor %}
+
+</div>
+
+<div class="fish-selector">
+
+{% set current = "" %}
+
+{% for fish in fish_list|sort %}
+
+{% set first = fish[0] %}
+
+{% if first != current %}
+
+<div id="{{first}}" class="letter">{{first}}</div>
+
+{% set current = first %}
+
+{% endif %}
+
+<div class="fish-item">
+<label>
+<input type="radio" name="species" value="{{fish}}" required>
+{{fish}}
+</label>
+</div>
+
+{% endfor %}
+
+</div>
 
 <br>
 
-<input type="number" name="quantity" placeholder="Quantity" required>
+<label>Quantity</label>
+<br>
+
+<input type="number" name="quantity" required>
 
 <br><br>
 
