@@ -24,10 +24,6 @@ def dashboard(request: Request):
 
     tank_data = []
 
-    healthy = 0
-    warning = 0
-    critical = 0
-
     for tank in tanks:
 
         tests = db.query(models.WaterTest)\
@@ -46,13 +42,6 @@ def dashboard(request: Request):
 
         alerts = generate_ai_recommendations(tests)
 
-        if health >= 80:
-            healthy += 1
-        elif health >= 50:
-            warning += 1
-        else:
-            critical += 1
-
         tank_data.append({
             "tank": tank,
             "health": health,
@@ -65,42 +54,9 @@ def dashboard(request: Request):
         "dashboard.html",
         {
             "request": request,
-            "tank_data": tank_data,
-            "healthy": healthy,
-            "warning": warning,
-            "critical": critical
+            "tank_data": tank_data
         }
     )
-
-
-@router.get("/create-tank")
-def create_tank_page(request: Request):
-
-    return templates.TemplateResponse(
-        "create_tank.html",
-        {"request": request}
-    )
-
-
-@router.post("/create-tank")
-def create_tank(
-        name: str = Form(...),
-        tank_type: str = Form(...),
-        size_litres: float = Form(...)
-):
-
-    db = SessionLocal()
-
-    tank = models.Tank(
-        name=name,
-        tank_type=tank_type,
-        size_litres=size_litres
-    )
-
-    db.add(tank)
-    db.commit()
-
-    return RedirectResponse("/dashboard", status_code=303)
 
 
 @router.get("/tank/{tank_id}")
@@ -120,6 +76,10 @@ def tank_detail(request: Request, tank_id: int):
         .order_by(models.WaterChange.timestamp)\
         .all()
 
+    fish = db.query(models.Fish)\
+        .filter(models.Fish.tank_id == tank_id)\
+        .all()
+
     recommendation = adjusted_water_change_recommendation(tests, changes)
 
     health = tank_health_score(tests)
@@ -133,6 +93,7 @@ def tank_detail(request: Request, tank_id: int):
             "tank": tank,
             "tests": tests,
             "changes": changes,
+            "fish": fish,
             "recommendation": recommendation,
             "health": health,
             "alerts": alerts
@@ -140,65 +101,31 @@ def tank_detail(request: Request, tank_id: int):
     )
 
 
-@router.get("/tank/{tank_id}/add-test")
-def add_test_page(request: Request, tank_id: int):
+@router.get("/tank/{tank_id}/add-fish")
+def add_fish_page(request: Request, tank_id: int):
 
     return templates.TemplateResponse(
-        "water_test.html",
+        "add_fish.html",
         {"request": request, "tank_id": tank_id}
     )
 
 
-@router.post("/tank/{tank_id}/add-test")
-def add_test(
+@router.post("/tank/{tank_id}/add-fish")
+def add_fish(
         tank_id: int,
-        ammonia: float = Form(None),
-        nitrite: float = Form(None),
-        nitrate: float = Form(None),
-        ph: float = Form(None),
-        temperature: float = Form(None)
+        species: str = Form(...),
+        quantity: int = Form(...)
 ):
 
     db = SessionLocal()
 
-    test = models.WaterTest(
+    fish = models.Fish(
         tank_id=tank_id,
-        ammonia=ammonia,
-        nitrite=nitrite,
-        nitrate=nitrate,
-        ph=ph,
-        temperature=temperature
+        species=species,
+        quantity=quantity
     )
 
-    db.add(test)
-    db.commit()
-
-    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
-
-
-@router.get("/tank/{tank_id}/add-change")
-def add_change_page(request: Request, tank_id: int):
-
-    return templates.TemplateResponse(
-        "water_change.html",
-        {"request": request, "tank_id": tank_id}
-    )
-
-
-@router.post("/tank/{tank_id}/add-change")
-def add_change(
-        tank_id: int,
-        percent: float = Form(...)
-):
-
-    db = SessionLocal()
-
-    change = models.WaterChange(
-        tank_id=tank_id,
-        percent=percent
-    )
-
-    db.add(change)
+    db.add(fish)
     db.commit()
 
     return RedirectResponse(f"/tank/{tank_id}", status_code=303)
