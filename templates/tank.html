@@ -33,6 +33,36 @@
 <canvas id="waterChart" height="300"></canvas>
 </div>
 
+<br><br>
+
+<h3>Water Test History</h3>
+
+<table style="width:100%; border-collapse:collapse; color:white;">
+
+<tr style="border-bottom:1px solid #3a4d5c;">
+<th>Date</th>
+<th>Ammonia</th>
+<th>Nitrite</th>
+<th>Nitrate</th>
+<th>pH</th>
+<th>Temp</th>
+</tr>
+
+{% for test in tests %}
+
+<tr style="border-bottom:1px solid #1e3a50;">
+<td>{{test.timestamp.strftime('%Y-%m-%d')}}</td>
+<td>{{test.ammonia}}</td>
+<td>{{test.nitrite}}</td>
+<td>{{test.nitrate}}</td>
+<td>{{test.ph}}</td>
+<td>{{test.temperature}}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
