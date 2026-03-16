@@ -19,7 +19,6 @@ templates = Jinja2Templates(directory="templates")
 def dashboard(request: Request):
 
     db = SessionLocal()
-
     tanks = db.query(models.Tank).all()
 
     tank_data = []
@@ -37,9 +36,7 @@ def dashboard(request: Request):
             .all()
 
         recommendation = adjusted_water_change_recommendation(tests, changes)
-
         health = tank_health_score(tests)
-
         alerts = generate_ai_recommendations(tests)
 
         tank_data.append({
@@ -52,10 +49,7 @@ def dashboard(request: Request):
 
     return templates.TemplateResponse(
         "dashboard.html",
-        {
-            "request": request,
-            "tank_data": tank_data
-        }
+        {"request": request, "tank_data": tank_data}
     )
 
 
@@ -111,9 +105,7 @@ def tank_detail(request: Request, tank_id: int):
         .all()
 
     recommendation = adjusted_water_change_recommendation(tests, changes)
-
     health = tank_health_score(tests)
-
     alerts = generate_ai_recommendations(tests)
 
     return templates.TemplateResponse(
@@ -129,6 +121,51 @@ def tank_detail(request: Request, tank_id: int):
             "alerts": alerts
         }
     )
+
+
+@router.get("/tank/{tank_id}/edit")
+def edit_tank_page(request: Request, tank_id: int):
+
+    db = SessionLocal()
+
+    tank = db.get(models.Tank, tank_id)
+
+    return templates.TemplateResponse(
+        "edit_tank.html",
+        {"request": request, "tank": tank}
+    )
+
+
+@router.post("/tank/{tank_id}/edit")
+def edit_tank(
+        tank_id: int,
+        name: str = Form(...),
+        size_litres: float = Form(...)
+):
+
+    db = SessionLocal()
+
+    tank = db.get(models.Tank, tank_id)
+
+    tank.name = name
+    tank.size_litres = size_litres
+
+    db.commit()
+
+    return RedirectResponse(f"/tank/{tank_id}", status_code=303)
+
+
+@router.post("/tank/{tank_id}/delete")
+def delete_tank(tank_id: int):
+
+    db = SessionLocal()
+
+    tank = db.get(models.Tank, tank_id)
+
+    db.delete(tank)
+    db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
 
 
 @router.get("/tank/{tank_id}/add-fish")
