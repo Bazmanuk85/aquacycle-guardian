@@ -24,6 +24,10 @@ def dashboard(request: Request):
 
     tank_data = []
 
+    healthy = 0
+    warning = 0
+    critical = 0
+
     for tank in tanks:
 
         tests = db.query(models.WaterTest)\
@@ -42,6 +46,13 @@ def dashboard(request: Request):
 
         alerts = generate_ai_recommendations(tests)
 
+        if health >= 80:
+            healthy += 1
+        elif health >= 50:
+            warning += 1
+        else:
+            critical += 1
+
         tank_data.append({
             "tank": tank,
             "health": health,
@@ -54,7 +65,10 @@ def dashboard(request: Request):
         "dashboard.html",
         {
             "request": request,
-            "tank_data": tank_data
+            "tank_data": tank_data,
+            "healthy": healthy,
+            "warning": warning,
+            "critical": critical
         }
     )
 
