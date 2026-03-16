@@ -11,15 +11,49 @@
 
 <h3>Tank Health</h3>
 
-<div class="health-score">
-    {{health}} / 100
-</div>
+{% if health >= 80 %}
+<p class="health-good">{{health}} / 100</p>
+{% elif health >= 50 %}
+<p class="health-warning">{{health}} / 100</p>
+{% else %}
+<p class="health-bad">{{health}} / 100</p>
+{% endif %}
 
 <h3>Water Change Recommendation</h3>
 
 <p><strong>{{recommendation}} % water change recommended</strong></p>
 
-<br>
+</div>
+
+
+<div class="card">
+
+<h3>AI Tank Recommendations</h3>
+
+{% if alerts %}
+
+<ul style="text-align:left;max-width:500px;margin:auto;">
+
+{% for alert in alerts %}
+
+<li style="margin-bottom:8px;">{{alert}}</li>
+
+{% endfor %}
+
+</ul>
+
+{% else %}
+
+<p>✅ Water parameters currently stable</p>
+
+{% endif %}
+
+</div>
+
+
+<div class="card">
+
+<h3>Log Data</h3>
 
 <a href="/tank/{{tank.id}}/add-test">
 <button>Log Water Test</button>
@@ -31,13 +65,13 @@
 
 </div>
 
-<br>
 
 <div class="card">
 
 <h3>Recent Water Tests</h3>
 
 <table>
+
 <tr>
 <th>Date</th>
 <th>Ammonia</th>
@@ -64,13 +98,13 @@
 
 </div>
 
-<br>
 
 <div class="card">
 
 <h3>Water Change History</h3>
 
 <table>
+
 <tr>
 <th>Date</th>
 <th>Percent</th>
