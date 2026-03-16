@@ -18,7 +18,7 @@
 
 {% for item in tank_data %}
 
-<div class="card" style="width:350px;">
+<div class="card" style="width:360px;">
 
 <h3>{{item.tank.name}}</h3>
 
@@ -35,17 +35,44 @@
 <p class="health-bad">{{item.health}} / 100</p>
 {% endif %}
 
-<h4>Recommendation</h4>
+<h4>Water Change Recommendation</h4>
 
-<p>{{item.recommendation}} % water change recommended</p>
+<p><strong>{{item.recommendation}} % recommended</strong></p>
 
-<canvas id="chart{{item.tank.id}}" height="150"></canvas>
+
+<h4>Alerts</h4>
+
+{% if item.alerts %}
+
+<div style="text-align:left;font-size:14px;">
+
+{% for alert in item.alerts %}
+
+<div style="margin-bottom:6px;">
+{{alert}}
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<p>✅ Stable</p>
+
+{% endif %}
+
+
+<canvas id="chart{{item.tank.id}}" height="140"></canvas>
+
+<br>
 
 <a href="/tank/{{item.tank.id}}">
 <button>Open Tank</button>
 </a>
 
 </div>
+
 
 <script>
 
@@ -71,7 +98,9 @@ borderWidth: 2
 },
 options: {
 responsive:true,
-plugins:{legend:{display:false}}
+plugins:{
+legend:{display:false}
+}
 }
 });
 
