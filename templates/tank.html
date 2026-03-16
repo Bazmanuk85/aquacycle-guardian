@@ -53,7 +53,7 @@
 
 <div class="card">
 
-<h3>Log Data</h3>
+<h3>Tank Actions</h3>
 
 <a href="/tank/{{tank.id}}/add-test">
 <button>Log Water Test</button>
@@ -62,6 +62,43 @@
 <a href="/tank/{{tank.id}}/add-change">
 <button>Log Water Change</button>
 </a>
+
+<a href="/tank/{{tank.id}}/add-fish">
+<button>Add Fish</button>
+</a>
+
+</div>
+
+
+<div class="card">
+
+<h3>Fish Stock</h3>
+
+{% if fish %}
+
+<table>
+
+<tr>
+<th>Species</th>
+<th>Quantity</th>
+</tr>
+
+{% for f in fish %}
+
+<tr>
+<td>{{f.species}}</td>
+<td>{{f.quantity}}</td>
+</tr>
+
+{% endfor %}
+
+</table>
+
+{% else %}
+
+<p>No fish recorded for this tank.</p>
+
+{% endif %}
 
 </div>
 
