@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+<h2>Edit Tank</h2>
+
+<form method="post">
+
+<label>Tank Name</label>
+<br>
+<input type="text" name="name" value="{{tank.name}}" required>
+
+<br><br>
+
+<label>Tank Size (Litres)</label>
+<br>
+<input type="number" name="size_litres" value="{{tank.size_litres}}" required>
+
+<br><br>
+
+<button type="submit">Save Changes</button>
+
+</form>
+
+<br>
+
+<form method="post" action="/tank/{{tank.id}}/delete">
+
+<button style="background:#c0392b;">Delete Tank</button>
+
+</form>
+
+</div>
+
+{% endblock %}
