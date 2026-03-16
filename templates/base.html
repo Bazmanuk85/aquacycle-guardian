@@ -10,33 +10,89 @@ body{
 font-family:Arial;
 background:#0b1d2a;
 color:white;
+margin:0;
 text-align:center;
+}
+
+.header{
+background:#081520;
+padding:15px;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.logo{
+margin-top:20px;
+margin-bottom:10px;
+}
+
+.logo img{
+max-width:200px;
 }
 
 .card{
 background:#132c3f;
-padding:30px;
-margin:auto;
-margin-top:40px;
-width:400px;
+padding:25px;
+margin-top:25px;
 border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.4);
 }
 
 button{
 padding:10px 20px;
 margin:5px;
+border:none;
+border-radius:6px;
+background:#1f7fd1;
+color:white;
+cursor:pointer;
 }
 
-.topbar{
-position:fixed;
-top:10px;
+button:hover{
+background:#3396ea;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+margin-top:10px;
+}
+
+th,td{
+padding:8px;
+border-bottom:1px solid #2e4b63;
+}
+
+.topnav{
+position:absolute;
+top:15px;
 right:20px;
 }
 
-.back{
-position:fixed;
-top:10px;
-left:20px;
+.topnav button{
+background:#1f7fd1;
+}
+
+.health-good{
+color:#00d084;
+font-weight:bold;
+}
+
+.health-warning{
+color:#ffb400;
+font-weight:bold;
+}
+
+.health-bad{
+color:#ff4d4d;
+font-weight:bold;
 }
 
 </style>
@@ -45,15 +101,20 @@ left:20px;
 
 <body>
 
-<div class="back">
-<button onclick="history.back()">Back</button>
-</div>
-
-<div class="topbar">
+<div class="topnav">
+<a href="/dashboard"><button>Dashboard</button></a>
 <a href="/logout"><button>Logout</button></a>
 </div>
 
+<div class="logo">
+<img src="/static/logo.png">
+</div>
+
+<div class="container">
+
 {% block content %}{% endblock %}
+
+</div>
 
 </body>
 </html>
