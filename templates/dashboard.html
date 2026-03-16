@@ -1,18 +1,45 @@
 {% extends "base.html" %}
+
 {% block content %}
 
-<h2>AquaGuardian Dashboard</h2>
+<h2>Your Tanks</h2>
 
-<a href="/create-tank">Add Tank</a>
+<div style="margin-bottom:20px;">
+<a href="/create-tank">
+<button>Create New Tank</button>
+</a>
+</div>
 
-<ul>
+{% if tanks %}
+
+<div style="display:flex; flex-wrap:wrap; justify-content:center; gap:20px;">
+
 {% for tank in tanks %}
-<li>
-<a href="/tank/{{tank.id}}">{{tank.name}}</a>
-</li>
-{% endfor %}
-</ul>
 
-<a href="/logout">Logout</a>
+<div class="card" style="width:260px;">
+
+<h3>{{tank.name}}</h3>
+
+<p><strong>Type:</strong> {{tank.tank_type}}</p>
+<p><strong>Size:</strong> {{tank.size_litres}} L</p>
+
+<a href="/tank/{{tank.id}}">
+<button>Open Tank</button>
+</a>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<div class="card">
+<p>No tanks yet</p>
+<p>Create your first aquarium to start tracking water parameters.</p>
+</div>
+
+{% endif %}
 
 {% endblock %}
