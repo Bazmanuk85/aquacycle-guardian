@@ -5,6 +5,79 @@ SAFE_NITRATE = 40
 CRITICAL_NITRATE = 80
 
 
+def required_water_change_from_tests(tests):
+
+    if not tests:
+        return 0
+
+    latest = tests[-1]
+
+    if latest.nitrate is None:
+        return 0
+
+    nitrate = latest.nitrate
+
+    if nitrate > 80:
+        return 50
+
+    if nitrate > 60:
+        return 40
+
+    if nitrate > 40:
+        return 25
+
+    return 0
+
+
+def adjusted_water_change_recommendation(tests, changes):
+
+    if not tests:
+        return 0
+
+    required = required_water_change_from_tests(tests)
+
+    latest_test_time = tests[-1].timestamp
+
+    completed = sum(
+        c.percent for c in changes
+        if c.timestamp >= latest_test_time
+    )
+
+    remaining = required - completed
+
+    if remaining < 0:
+        remaining = 0
+
+    return round(remaining, 1)
+
+
+def tank_health_score(tests):
+
+    if not tests:
+        return 50
+
+    latest = tests[-1]
+
+    score = 100
+
+    if latest.ammonia and latest.ammonia > 0.25:
+        score -= 40
+
+    if latest.nitrite and latest.nitrite > 0.25:
+        score -= 30
+
+    if latest.nitrate and latest.nitrate > 40:
+        score -= 20
+
+    if latest.temperature and (latest.temperature > 30 or latest.temperature < 18):
+        score -= 10
+
+    if score < 0:
+        score = 0
+
+    return score
+
+
 def nitrate_rate(tests):
 
     nitrates = [t.nitrate for t in tests if t.nitrate is not None]
@@ -46,30 +119,6 @@ def predict_days_until_nitrate_critical(tests):
     return round(days, 1)
 
 
-def recommended_water_change_for_nitrate(tests):
-
-    if not tests:
-        return 0
-
-    latest = tests[-1]
-
-    nitrate = latest.nitrate
-
-    if nitrate is None:
-        return 0
-
-    if nitrate > 80:
-        return 50
-
-    if nitrate > 60:
-        return 40
-
-    if nitrate > 40:
-        return 25
-
-    return 0
-
-
 def generate_ai_recommendations(tests):
 
     alerts = []
@@ -94,16 +143,11 @@ def generate_ai_recommendations(tests):
     days = predict_days_until_nitrate_critical(tests)
 
     if days and days > 0:
+        alerts.append(f"📊 Nitrate may exceed safe level in ~{days} days")
 
-        alerts.append(
-            f"📊 Nitrate may exceed safe level in ~{days} days"
-        )
+    change = required_water_change_from_tests(tests)
 
-        change = recommended_water_change_for_nitrate(tests)
-
-        if change:
-            alerts.append(
-                f"💧 Recommended water change: {change}%"
-            )
+    if change > 0:
+        alerts.append(f"💧 Recommended water change: {change}%")
 
     return alerts
