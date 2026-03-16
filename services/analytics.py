@@ -1,101 +1,42 @@
 from datetime import datetime
 
 
-def required_water_change_from_tests(tests):
-
-    if not tests:
-        return 0
-
-    latest = tests[-1]
-    required = 0
-
-    if latest.ammonia is not None and latest.ammonia > 0.5:
-        required = max(required, 60)
-
-    if latest.ammonia is not None and latest.ammonia > 0.25:
-        required = max(required, 40)
-
-    if latest.nitrite is not None and latest.nitrite > 0.5:
-        required = max(required, 40)
-
-    if latest.nitrate is not None and latest.nitrate > 80:
-        required = max(required, 40)
-
-    if latest.nitrate is not None and latest.nitrate > 40:
-        required = max(required, 25)
-
-    return required
+SAFE_NITRATE = 40
+CRITICAL_NITRATE = 80
 
 
-def adjusted_water_change_recommendation(tests, changes):
+def nitrate_rate(tests):
 
-    if not tests:
-        return 0
+    nitrates = [t.nitrate for t in tests if t.nitrate is not None]
 
-    required = required_water_change_from_tests(tests)
-
-    latest_test_time = tests[-1].timestamp
-
-    completed = sum(
-        c.percent for c in changes
-        if c.timestamp >= latest_test_time
-    )
-
-    remaining = required - completed
-
-    return max(round(remaining, 1), 0)
-
-
-def tank_health_score(tests):
-
-    if not tests:
-        return 50
-
-    latest = tests[-1]
-    score = 100
-
-    if latest.ammonia is not None and latest.ammonia > 0.25:
-        score -= 40
-
-    if latest.nitrite is not None and latest.nitrite > 0.25:
-        score -= 30
-
-    if latest.nitrate is not None and latest.nitrate > 40:
-        score -= 20
-
-    if latest.temperature is not None and (latest.temperature > 30 or latest.temperature < 18):
-        score -= 10
-
-    return max(score, 0)
-
-
-def detect_trend(values):
-
-    if len(values) < 3:
-        return "stable"
-
-    if values[-1] > values[-2] > values[-3]:
-        return "rising"
-
-    if values[-1] < values[-2] < values[-3]:
-        return "falling"
-
-    return "stable"
-
-
-def estimate_days_to_threshold(values, threshold):
-
-    if len(values) < 3:
+    if len(nitrates) < 3:
         return None
 
-    v1, v2, v3 = values[-3], values[-2], values[-1]
+    v1, v2, v3 = nitrates[-3], nitrates[-2], nitrates[-1]
 
     rate = (v3 - v1) / 2
 
     if rate <= 0:
         return None
 
-    remaining = threshold - v3
+    return rate
+
+
+def predict_days_until_nitrate_critical(tests):
+
+    nitrates = [t.nitrate for t in tests if t.nitrate is not None]
+
+    if len(nitrates) < 3:
+        return None
+
+    rate = nitrate_rate(tests)
+
+    if not rate:
+        return None
+
+    current = nitrates[-1]
+
+    remaining = CRITICAL_NITRATE - current
 
     if remaining <= 0:
         return 0
@@ -103,6 +44,30 @@ def estimate_days_to_threshold(values, threshold):
     days = remaining / rate
 
     return round(days, 1)
+
+
+def recommended_water_change_for_nitrate(tests):
+
+    if not tests:
+        return 0
+
+    latest = tests[-1]
+
+    nitrate = latest.nitrate
+
+    if nitrate is None:
+        return 0
+
+    if nitrate > 80:
+        return 50
+
+    if nitrate > 60:
+        return 40
+
+    if nitrate > 40:
+        return 25
+
+    return 0
 
 
 def generate_ai_recommendations(tests):
@@ -114,56 +79,31 @@ def generate_ai_recommendations(tests):
 
     latest = tests[-1]
 
-    nitrate_values = [t.nitrate for t in tests if t.nitrate is not None]
-    nitrite_values = [t.nitrite for t in tests if t.nitrite is not None]
-    temp_values = [t.temperature for t in tests if t.temperature is not None]
+    if latest.ammonia and latest.ammonia > 0:
+        alerts.append("🚨 Ammonia detected — immediate water change required")
 
-    nitrate_trend = detect_trend(nitrate_values)
-    nitrite_trend = detect_trend(nitrite_values)
-    temp_trend = detect_trend(temp_values)
+    if latest.nitrite and latest.nitrite > 0.25:
+        alerts.append("🚨 Nitrite dangerously high")
 
-    # Immediate issues
+    if latest.temperature and latest.temperature > 30:
+        alerts.append("🔥 Temperature too high")
 
-    if latest.ammonia is not None and latest.ammonia > 0:
-        alerts.append("🚨 Ammonia detected — perform immediate water change")
+    if latest.temperature and latest.temperature < 18:
+        alerts.append("❄ Temperature too low")
 
-    if latest.nitrite is not None and latest.nitrite > 0.25:
-        alerts.append("🚨 Nitrite dangerously high — toxic to fish")
+    days = predict_days_until_nitrate_critical(tests)
 
-    if latest.nitrate is not None and latest.nitrate > 50:
-        alerts.append("⚠ Nitrate high — schedule water change")
+    if days and days > 0:
 
-    if latest.temperature is not None and latest.temperature > 30:
-        alerts.append("🔥 Temperature too high — risk of oxygen depletion")
-
-    if latest.temperature is not None and latest.temperature < 18:
-        alerts.append("❄ Temperature too low for most tropical fish")
-
-    # Trend alerts
-
-    if nitrate_trend == "rising":
-        alerts.append("📈 Nitrate trending upward — water quality declining")
-
-    if nitrite_trend == "rising":
-        alerts.append("📈 Nitrite increasing trend detected")
-
-    if temp_trend == "rising":
-        alerts.append("📈 Temperature rising trend detected")
-
-    # Predictive alerts
-
-    nitrate_days = estimate_days_to_threshold(nitrate_values, 80)
-
-    if nitrate_days and nitrate_days > 0:
         alerts.append(
-            f"📊 Nitrate may exceed safe level in ~{nitrate_days} days"
+            f"📊 Nitrate may exceed safe level in ~{days} days"
         )
 
-    temp_days = estimate_days_to_threshold(temp_values, 30)
+        change = recommended_water_change_for_nitrate(tests)
 
-    if temp_days and temp_days > 0:
-        alerts.append(
-            f"🌡 Temperature may exceed safe range in ~{temp_days} days"
-        )
+        if change:
+            alerts.append(
+                f"💧 Recommended water change: {change}%"
+            )
 
     return alerts
