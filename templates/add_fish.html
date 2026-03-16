@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="card">
+
+<h2>Add Fish</h2>
+
+<form method="post">
+
+<input type="text" name="species" placeholder="Species (e.g. Neon Tetra)" required>
+
+<br>
+
+<input type="number" name="quantity" placeholder="Quantity" required>
+
+<br><br>
+
+<button type="submit">Add Fish</button>
+
+</form>
+
+</div>
+
+{% endblock %}
