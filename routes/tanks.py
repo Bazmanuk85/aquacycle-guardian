@@ -59,6 +59,36 @@ def dashboard(request: Request):
     )
 
 
+@router.get("/create-tank")
+def create_tank_page(request: Request):
+
+    return templates.TemplateResponse(
+        "create_tank.html",
+        {"request": request}
+    )
+
+
+@router.post("/create-tank")
+def create_tank(
+        name: str = Form(...),
+        tank_type: str = Form(...),
+        size_litres: float = Form(...)
+):
+
+    db = SessionLocal()
+
+    tank = models.Tank(
+        name=name,
+        tank_type=tank_type,
+        size_litres=size_litres
+    )
+
+    db.add(tank)
+    db.commit()
+
+    return RedirectResponse("/dashboard", status_code=303)
+
+
 @router.get("/tank/{tank_id}")
 def tank_detail(request: Request, tank_id: int):
 
