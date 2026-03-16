@@ -18,11 +18,40 @@ templates = Jinja2Templates(directory="templates")
 def dashboard(request: Request):
 
     db = SessionLocal()
+
     tanks = db.query(models.Tank).all()
+
+    tank_data = []
+
+    for tank in tanks:
+
+        tests = db.query(models.WaterTest)\
+            .filter(models.WaterTest.tank_id == tank.id)\
+            .order_by(models.WaterTest.timestamp)\
+            .all()
+
+        changes = db.query(models.WaterChange)\
+            .filter(models.WaterChange.tank_id == tank.id)\
+            .order_by(models.WaterChange.timestamp)\
+            .all()
+
+        recommendation = adjusted_water_change_recommendation(tests, changes)
+
+        health = tank_health_score(tests)
+
+        tank_data.append({
+            "tank": tank,
+            "health": health,
+            "recommendation": recommendation,
+            "tests": tests
+        })
 
     return templates.TemplateResponse(
         "dashboard.html",
-        {"request": request, "tanks": tanks}
+        {
+            "request": request,
+            "tank_data": tank_data
+        }
     )
 
 
@@ -61,7 +90,7 @@ def tank_detail(request: Request, tank_id: int):
 
     db = SessionLocal()
 
-    tank = db.query(models.Tank).get(tank_id)
+    tank = db.get(models.Tank, tank_id)
 
     tests = db.query(models.WaterTest)\
         .filter(models.WaterTest.tank_id == tank_id)\
