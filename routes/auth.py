@@ -15,20 +15,29 @@ router = APIRouter()
 
 
 # ------------------------
-# Helper: Fake Email Sender
+# Simulated Email Sender
 # ------------------------
 def send_verification_email(email: str, username: str):
     print(f"[EMAIL SIMULATION] Sending verification email to {email} for user {username}")
 
 
 # ------------------------
-# REGISTER
+# REGISTER PAGE
 # ------------------------
 @router.get("/register", response_class=HTMLResponse)
 def register_get(request: Request):
-    return templates.TemplateResponse("register.html", {"request": request})
+    return templates.TemplateResponse(
+        "register.html",
+        {
+            "request": request,
+            "errors": []
+        }
+    )
 
 
+# ------------------------
+# REGISTER POST
+# ------------------------
 @router.post("/register", response_class=HTMLResponse)
 def register_post(
     request: Request,
@@ -37,6 +46,7 @@ def register_post(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
+
     errors = []
 
     # Username validation
@@ -47,15 +57,30 @@ def register_post(
     if existing_user:
         errors.append("Username already exists")
 
-    # Password validation
-    password_valid, password_message = validate_password(password)
-    if not password_valid:
-        errors.append(password_message)
-
     # Email validation
     if "@" not in email:
-        errors.append("Invalid email address")
+        errors.append("Please enter a valid email address")
 
+    # Password validation (safe handling)
+    try:
+        validation = validate_password(password)
+
+        if isinstance(validation, tuple):
+            valid, message = validation
+            if not valid:
+                errors.append(message)
+
+        elif isinstance(validation, list):
+            errors.extend(validation)
+
+        elif validation is False:
+            errors.append("Password does not meet requirements")
+
+    except Exception as e:
+        print("Password validation error:", e)
+        errors.append("Password validation failed")
+
+    # If errors exist, return page with messages
     if errors:
         return templates.TemplateResponse(
             "register.html",
@@ -67,6 +92,7 @@ def register_post(
             }
         )
 
+    # Create user
     hashed_pw = hash_password(password)
 
     new_user = User(
@@ -78,19 +104,28 @@ def register_post(
     db.add(new_user)
     db.commit()
 
+    # Simulated email
     send_verification_email(email, username)
 
     return RedirectResponse(url="/login", status_code=HTTP_302_FOUND)
 
 
 # ------------------------
-# LOGIN
+# LOGIN PAGE
 # ------------------------
 @router.get("/login", response_class=HTMLResponse)
 def login_get(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+    return templates.TemplateResponse(
+        "login.html",
+        {
+            "request": request
+        }
+    )
 
 
+# ------------------------
+# LOGIN POST
+# ------------------------
 @router.post("/login", response_class=HTMLResponse)
 def login_post(
     request: Request,
@@ -98,20 +133,25 @@ def login_post(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    # ------------------------
-    # ADMIN BACKDOOR
-    # ------------------------
+
+    # Admin backdoor
     if username == "admin" and password == "admin":
         response = RedirectResponse(url="/dashboard", status_code=HTTP_302_FOUND)
         response.set_cookie(key="user", value="admin")
         return response
 
-    # ------------------------
-    # NORMAL LOGIN
-    # ------------------------
     user = db.query(User).filter(User.username == username).first()
 
-    if not user or not verify_password(password, user.password):
+    if not user:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Invalid username or password"
+            }
+        )
+
+    if not verify_password(password, user.password):
         return templates.TemplateResponse(
             "login.html",
             {
