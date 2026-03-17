@@ -58,12 +58,12 @@ def register_post(
     if "@" not in email:
         errors.append("Please enter a valid email address")
 
-    # ✅ FIXED PASSWORD VALIDATION
+    # Password validation
     password_error = validate_password(password)
     if password_error:
         errors.append(password_error)
 
-    # Return errors if any
+    # Return errors
     if errors:
         return templates.TemplateResponse(
             "register.html",
@@ -75,17 +75,33 @@ def register_post(
             }
         )
 
-    # Create user
-    hashed_pw = hash_password(password)
+    try:
+        # Hash password
+        hashed_pw = hash_password(password)
 
-    new_user = User(
-        username=username,
-        email=email,
-        password=hashed_pw
-    )
+        # ✅ FIXED FIELD NAME HERE
+        new_user = User(
+            username=username,
+            email=email,
+            hashed_password=hashed_pw
+        )
 
-    db.add(new_user)
-    db.commit()
+        db.add(new_user)
+        db.commit()
+
+    except Exception as e:
+        db.rollback()
+        print("DB ERROR:", e)
+
+        return templates.TemplateResponse(
+            "register.html",
+            {
+                "request": request,
+                "errors": ["Something went wrong creating your account"],
+                "username": username,
+                "email": email
+            }
+        )
 
     # Simulated email
     send_verification_email(email, username)
@@ -123,7 +139,8 @@ def login_post(
 
     user = db.query(User).filter(User.username == username).first()
 
-    if not user or not verify_password(password, user.password):
+    # ✅ FIXED FIELD NAME HERE TOO
+    if not user or not verify_password(password, user.hashed_password):
         return templates.TemplateResponse(
             "login.html",
             {
