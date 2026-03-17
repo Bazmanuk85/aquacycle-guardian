@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 
 <title>AquaGuardian</title>
@@ -10,88 +11,41 @@ body{
 font-family:Arial;
 background:#0b1d2a;
 color:white;
-margin:0;
 text-align:center;
-}
-
-.logo{
-margin-top:30px;
-margin-bottom:20px;
-}
-
-.logo img{
-width:320px;
-border-radius:20px;
-}
-
-.container{
-max-width:900px;
-margin:auto;
-padding:20px;
 }
 
 .card{
 background:#132c3f;
 padding:30px;
-margin-top:30px;
-border-radius:14px;
-box-shadow:0 0 12px rgba(0,0,0,0.4);
+margin:auto;
+margin-top:40px;
+width:400px;
+border-radius:10px;
 }
 
 button{
 padding:10px 20px;
-margin:6px;
-border:none;
+margin:5px;
 border-radius:8px;
-background:#1f7fd1;
-color:white;
-cursor:pointer;
-font-size:14px;
-}
-
-button:hover{
-background:#3396ea;
-}
-
-input{
-padding:10px;
-border-radius:10px;
 border:none;
-margin:6px;
-width:80%;
-font-size:14px;
+cursor:pointer;
 }
 
-table{
-width:100%;
-border-collapse:collapse;
-margin-top:10px;
-}
-
-th,td{
-padding:8px;
-border-bottom:1px solid #2e4b63;
-}
-
-.topnav{
-position:absolute;
-top:15px;
+.topbar{
+position:fixed;
+top:10px;
 right:20px;
 }
 
-.health-good{
-color:#00d084;
-font-weight:bold;
+.back{
+position:fixed;
+top:10px;
+left:20px;
 }
 
-.health-warning{
-color:#ffb400;
-font-weight:bold;
-}
-
-.health-bad{
-color:#ff4d4d;
-font-weight:bold;
+.logo{
+margin-top:30px;
+margin-bottom:10px;
 }
 
 </style>
@@ -100,20 +54,27 @@ font-weight:bold;
 
 <body>
 
-<div class="topnav">
-<a href="/dashboard"><button>Dashboard</button></a>
-<a href="/logout"><button>Logout</button></a>
-</div>
-
 <div class="logo">
-<img src="/static/logo.png">
+<img src="/static/logo.png" width="160">
 </div>
 
-<div class="container">
+{% if request.cookies.get("user") %}
+
+<div class="back">
+<a href="/dashboard">
+<button>Dashboard</button>
+</a>
+</div>
+
+<div class="topbar">
+<a href="/logout">
+<button>Logout</button>
+</a>
+</div>
+
+{% endif %}
 
 {% block content %}{% endblock %}
-
-</div>
 
 </body>
 </html>
