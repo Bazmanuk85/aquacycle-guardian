@@ -32,7 +32,7 @@ gap:25px;
 padding:30px;
 ">
 
-{% for tank in tanks %}
+{% for item in tank_data %}
 
 <div style="
 background:white;
@@ -42,11 +42,24 @@ width:320px;
 box-shadow:0 4px 12px rgba(0,0,0,0.2);
 ">
 
-<h3>{{ tank.name }}</h3>
+<h3>{{ item.tank.name }}</h3>
 
-{{ tank.stats | safe }}
+{% if item.latest_test %}
 
-<a href="/tank/{{ tank.id }}">View Tank</a>
+<p><strong>Ammonia:</strong> {{ item.latest_test.ammonia }}</p>
+<p><strong>Nitrite:</strong> {{ item.latest_test.nitrite }}</p>
+<p><strong>Nitrate:</strong> {{ item.latest_test.nitrate }}</p>
+<p><strong>Temperature:</strong> {{ item.latest_test.temperature }}</p>
+
+<p><strong>Status:</strong> {{ item.status }}</p>
+
+{% else %}
+
+<p>No water tests logged yet.</p>
+
+{% endif %}
+
+<a href="/tank/{{ item.tank.id }}">View Tank</a>
 
 </div>
 
