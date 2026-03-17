@@ -1,35 +1,176 @@
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import RedirectResponse
+from fastapi import APIRouter, Request, Form, Depends
+from fastapi.responses import RedirectResponse, HTMLResponse
+from sqlalchemy.orm import Session
+from starlette.status import HTTP_302_FOUND
+
+from database import get_db
+from models import User
+from services.auth import hash_password, verify_password, validate_password
+
 from fastapi.templating import Jinja2Templates
 
-router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
-
-@router.get("/")
-def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+router = APIRouter()
 
 
-@router.post("/login")
-def login(request: Request, username: str = Form(...), password: str = Form(...)):
+# ------------------------
+# Simulated Email Sender
+# ------------------------
+def send_verification_email(email: str, username: str):
+    print(f"[EMAIL SIMULATION] Sending verification email to {email} for user {username}")
 
-    if username == "admin" and password == "admin":
 
-        response = RedirectResponse("/dashboard", status_code=303)
-        response.set_cookie("user", username)
-        return response
-
+# ------------------------
+# REGISTER PAGE
+# ------------------------
+@router.get("/register", response_class=HTMLResponse)
+def register_get(request: Request):
     return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": "Invalid login"}
+        "register.html",
+        {
+            "request": request,
+            "errors": []
+        }
     )
 
 
+# ------------------------
+# REGISTER POST
+# ------------------------
+@router.post("/register", response_class=HTMLResponse)
+def register_post(
+    request: Request,
+    username: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+
+    errors = []
+
+    # Username validation
+    if len(username) < 3:
+        errors.append("Username must be at least 3 characters long")
+
+    existing_user = db.query(User).filter(User.username == username).first()
+    if existing_user:
+        errors.append("Username already exists")
+
+    # Email validation
+    if "@" not in email:
+        errors.append("Please enter a valid email address")
+
+    # Password validation (safe handling)
+    try:
+        validation = validate_password(password)
+
+        if isinstance(validation, tuple):
+            valid, message = validation
+            if not valid:
+                errors.append(message)
+
+        elif isinstance(validation, list):
+            errors.extend(validation)
+
+        elif validation is False:
+            errors.append("Password does not meet requirements")
+
+    except Exception as e:
+        print("Password validation error:", e)
+        errors.append("Password validation failed")
+
+    # If errors exist, return page with messages
+    if errors:
+        return templates.TemplateResponse(
+            "register.html",
+            {
+                "request": request,
+                "errors": errors,
+                "username": username,
+                "email": email
+            }
+        )
+
+    # Create user
+    hashed_pw = hash_password(password)
+
+    new_user = User(
+        username=username,
+        email=email,
+        password=hashed_pw
+    )
+
+    db.add(new_user)
+    db.commit()
+
+    # Simulated email
+    send_verification_email(email, username)
+
+    return RedirectResponse(url="/login", status_code=HTTP_302_FOUND)
+
+
+# ------------------------
+# LOGIN PAGE
+# ------------------------
+@router.get("/login", response_class=HTMLResponse)
+def login_get(request: Request):
+    return templates.TemplateResponse(
+        "login.html",
+        {
+            "request": request
+        }
+    )
+
+
+# ------------------------
+# LOGIN POST
+# ------------------------
+@router.post("/login", response_class=HTMLResponse)
+def login_post(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    db: Session = Depends(get_db)
+):
+
+    # Admin backdoor
+    if username == "admin" and password == "admin":
+        response = RedirectResponse(url="/dashboard", status_code=HTTP_302_FOUND)
+        response.set_cookie(key="user", value="admin")
+        return response
+
+    user = db.query(User).filter(User.username == username).first()
+
+    if not user:
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Invalid username or password"
+            }
+        )
+
+    if not verify_password(password, user.password):
+        return templates.TemplateResponse(
+            "login.html",
+            {
+                "request": request,
+                "error": "Invalid username or password"
+            }
+        )
+
+    response = RedirectResponse(url="/dashboard", status_code=HTTP_302_FOUND)
+    response.set_cookie(key="user", value=user.username)
+
+    return response
+
+
+# ------------------------
+# LOGOUT
+# ------------------------
 @router.get("/logout")
 def logout():
-
-    response = RedirectResponse("/", status_code=303)
+    response = RedirectResponse(url="/login", status_code=HTTP_302_FOUND)
     response.delete_cookie("user")
-
     return response
