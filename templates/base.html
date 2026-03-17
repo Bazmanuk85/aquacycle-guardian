@@ -1,80 +1,75 @@
 <!DOCTYPE html>
 <html>
-
 <head>
+    <title>AquaGuardian</title>
 
-<title>AquaGuardian</title>
+    <style>
 
-<style>
+        body {
+            font-family: Arial, sans-serif;
+            margin:0;
+            background:#f4f6f8;
+        }
 
-body{
-font-family:Arial;
-background:#0b1d2a;
-color:white;
-text-align:center;
-}
+        header {
+            background:#0b3d5c;
+            color:white;
+            padding:15px 30px;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+        }
 
-.card{
-background:#132c3f;
-padding:30px;
-margin:auto;
-margin-top:40px;
-width:400px;
-border-radius:10px;
-}
+        .logo {
+            display:flex;
+            align-items:center;
+            gap:15px;
+        }
 
-button{
-padding:10px 20px;
-margin:5px;
-border-radius:8px;
-border:none;
-cursor:pointer;
-}
+        /* ✅ Larger logo everywhere */
+        .logo img {
+            height:70px;
+        }
 
-.topbar{
-position:fixed;
-top:10px;
-right:20px;
-}
+        nav a {
+            color:white;
+            text-decoration:none;
+            margin-left:20px;
+            font-weight:bold;
+        }
 
-.back{
-position:fixed;
-top:10px;
-left:20px;
-}
+        main {
+            padding:30px;
+        }
 
-.logo{
-margin-top:30px;
-margin-bottom:10px;
-}
-
-</style>
+    </style>
 
 </head>
 
 <body>
 
-<div class="logo">
-<img src="/static/logo.png" width="160">
-</div>
+<header>
 
-{% if request.cookies.get("user") %}
+    <div class="logo">
+        <img src="/static/logo.png">
+        <h1>AquaGuardian</h1>
+    </div>
 
-<div class="back">
-<a href="/dashboard">
-<button>Dashboard</button>
-</a>
-</div>
+    <nav>
+        {% if request.cookies.get("user") %}
+            <a href="/dashboard">Dashboard</a>
+            <a href="/logout">Logout</a>
+        {% endif %}
+    </nav>
 
-<div class="topbar">
-<a href="/logout">
-<button>Logout</button>
-</a>
-</div>
+</header>
 
-{% endif %}
+<main>
 
-{% block content %}{% endblock %}
+{% block content %}
+{% endblock %}
+
+</main>
 
 </body>
 </html>
