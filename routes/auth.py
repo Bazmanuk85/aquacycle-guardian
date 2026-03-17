@@ -1,85 +1,107 @@
-{% extends "base.html" %}
+from fastapi import APIRouter, Request, Form
+from fastapi.responses import RedirectResponse
+from fastapi.templating import Jinja2Templates
 
-{% block content %}
+import models
+from database import SessionLocal
 
-<style>
+from services.auth import hash_password, verify_password, validate_password
 
-.login-container{
-display:flex;
-justify-content:center;
-align-items:center;
-height:60vh;
-}
+router = APIRouter()
 
-.login-card{
-background:#132c3f;
-padding:40px;
-border-radius:18px;
-width:320px;
-box-shadow:0 0 25px rgba(31,127,209,0.4);
-}
-
-.login-card input{
-width:90%;
-padding:12px;
-margin:10px 0;
-border:none;
-border-radius:12px;
-}
-
-.login-card button{
-width:95%;
-padding:12px;
-margin-top:10px;
-border-radius:12px;
-}
-
-.create-account{
-margin-top:15px;
-font-size:14px;
-}
-
-.create-account a{
-color:#6bb7ff;
-text-decoration:none;
-}
-
-.error{
-color:#ff6b6b;
-margin-top:10px;
-}
-
-</style>
+templates = Jinja2Templates(directory="templates")
 
 
-<div class="login-container">
+@router.get("/")
+def login_page(request: Request):
 
-<div class="login-card">
+    return templates.TemplateResponse(
+        "login.html",
+        {"request": request}
+    )
 
-<h2>Login</h2>
 
-<form method="post" action="/login">
+@router.post("/login")
+def login(request: Request, username: str = Form(...), password: str = Form(...)):
 
-<input type="text" name="username" placeholder="Username" required>
+    # Admin backdoor
+    if username == "admin" and password == "admin":
 
-<input type="password" name="password" placeholder="Password" required>
+        response = RedirectResponse("/dashboard", status_code=303)
+        response.set_cookie("user", username)
 
-<button type="submit">Login</button>
+        return response
 
-</form>
+    db = SessionLocal()
 
-{% if error %}
-<div class="error">{{error}}</div>
-{% endif %}
+    user = db.query(models.User).filter(
+        models.User.username == username
+    ).first()
 
-<div class="create-account">
-Don't have an account?
-<br>
-<a href="/register">Create one here</a>
-</div>
+    if not user:
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "error": "Invalid login"}
+        )
 
-</div>
+    if not verify_password(password, user.password):
+        return templates.TemplateResponse(
+            "login.html",
+            {"request": request, "error": "Invalid login"}
+        )
 
-</div>
+    response = RedirectResponse("/dashboard", status_code=303)
+    response.set_cookie("user", username)
 
-{% endblock %}
+    return response
+
+
+@router.get("/register")
+def register_page(request: Request):
+
+    return templates.TemplateResponse(
+        "register.html",
+        {"request": request}
+    )
+
+
+@router.post("/register")
+def register(
+    request: Request,
+    email: str = Form(...),
+    username: str = Form(...),
+    password: str = Form(...)
+):
+
+    db = SessionLocal()
+
+    error = validate_password(password)
+
+    if error:
+
+        return templates.TemplateResponse(
+            "register.html",
+            {"request": request, "error": error}
+        )
+
+    hashed_password = hash_password(password)
+
+    user = models.User(
+        email=email,
+        username=username,
+        password=hashed_password
+    )
+
+    db.add(user)
+    db.commit()
+
+    return RedirectResponse("/", status_code=303)
+
+
+@router.get("/logout")
+def logout():
+
+    response = RedirectResponse("/", status_code=303)
+    response.delete_cookie("user")
+
+    return response
