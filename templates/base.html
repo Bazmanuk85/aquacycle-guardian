@@ -4,44 +4,29 @@
     <title>AquaGuardian</title>
 
     <style>
-
         body {
             font-family: Arial, sans-serif;
-            margin:0;
-            background:#f4f6f8;
+            margin: 0;
         }
 
         header {
-            background:#0b3d5c;
-            color:white;
-            padding:15px 30px;
-            display:flex;
-            align-items:center;
-            justify-content:space-between;
-        }
-
-        .logo {
-            display:flex;
-            align-items:center;
-            gap:10px;
-        }
-
-        /* 🔁 Reverted logo size */
-        .logo img {
-            height:40px;
+            background: #0b3d5c;
+            color: white;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         nav a {
-            color:white;
-            text-decoration:none;
-            margin-left:20px;
-            font-weight:bold;
+            color: white;
+            margin-left: 15px;
+            text-decoration: none;
         }
 
         main {
-            padding:30px;
+            padding: 20px;
         }
-
     </style>
 
 </head>
@@ -49,10 +34,10 @@
 <body>
 
 <header>
-
-    <div class="logo">
+    <div>
+        <!-- ✅ NO FORCED LOGO SIZE -->
         <img src="/static/logo.png">
-        <h1>AquaGuardian</h1>
+        AquaGuardian
     </div>
 
     <nav>
@@ -61,14 +46,10 @@
             <a href="/logout">Logout</a>
         {% endif %}
     </nav>
-
 </header>
 
 <main>
-
-{% block content %}
-{% endblock %}
-
+    {% block content %}{% endblock %}
 </main>
 
 </body>
