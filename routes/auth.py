@@ -58,10 +58,10 @@ def register_post(
     if "@" not in email:
         errors.append("Please enter a valid email address")
 
-    # Password validation
+    # ✅ UX POLISH: Simplified password message
     password_error = validate_password(password)
     if password_error:
-        errors.append(password_error)
+        errors.append("Make sure your password meets the complexity requirements")
 
     # Return errors
     if errors:
@@ -79,7 +79,6 @@ def register_post(
         # Hash password
         hashed_pw = hash_password(password)
 
-        # ✅ FIXED FIELD NAME HERE
         new_user = User(
             username=username,
             email=email,
@@ -139,7 +138,6 @@ def login_post(
 
     user = db.query(User).filter(User.username == username).first()
 
-    # ✅ FIXED FIELD NAME HERE TOO
     if not user or not verify_password(password, user.hashed_password):
         return templates.TemplateResponse(
             "login.html",
