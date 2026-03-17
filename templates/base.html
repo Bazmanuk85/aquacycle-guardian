@@ -7,25 +7,38 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
+            background: #f4f6f8;
         }
 
         header {
             background: #0b3d5c;
             color: white;
-            padding: 15px;
+            padding: 15px 30px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ✅ Original size */
+        .logo img {
+            height: 40px;
         }
 
         nav a {
             color: white;
-            margin-left: 15px;
             text-decoration: none;
+            margin-left: 20px;
+            font-weight: bold;
         }
 
         main {
-            padding: 20px;
+            padding: 30px;
         }
     </style>
 
@@ -34,10 +47,10 @@
 <body>
 
 <header>
-    <div>
-        <!-- ✅ NO FORCED LOGO SIZE -->
+
+    <div class="logo">
         <img src="/static/logo.png">
-        AquaGuardian
+        <h1>AquaGuardian</h1>
     </div>
 
     <nav>
@@ -46,10 +59,14 @@
             <a href="/logout">Logout</a>
         {% endif %}
     </nav>
+
 </header>
 
 <main>
-    {% block content %}{% endblock %}
+
+{% block content %}
+{% endblock %}
+
 </main>
 
 </body>
