@@ -2,38 +2,53 @@
 
 {% block content %}
 
-<div class="card">
+<div style="max-width:500px;margin:auto;">
 
 <h2>Create Account</h2>
 
+{% if errors %}
+<div style="background:#ffdddd;border:1px solid #ff5c5c;padding:10px;margin-bottom:15px;">
+    {% for error in errors %}
+        <div>{{ error }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
 <form method="post">
 
-<input type="email" name="email" placeholder="Email Address" required>
+<div style="margin-bottom:10px;">
+<input type="text" name="username" placeholder="Username"
+value="{{ username if username else '' }}" required
+style="width:100%;padding:10px;">
+</div>
 
-<br>
+<div style="margin-bottom:10px;">
+<input type="email" name="email" placeholder="Email"
+value="{{ email if email else '' }}" required
+style="width:100%;padding:10px;">
+</div>
 
-<input type="text" name="username" placeholder="Username" required>
+<div style="margin-bottom:15px;">
+<input type="password" name="password" placeholder="Password"
+required style="width:100%;padding:10px;">
+</div>
 
-<br>
-
-<input type="password" name="password" placeholder="Password" required>
-
-<p style="font-size:13px;color:#8aaec6">
-
-Password requirements:
-
-<br>
-• 8–16 characters  
-<br>
-• At least one uppercase letter  
-<br>
-• At least one special character
-
-</p>
-
-<button type="submit">Create Account</button>
+<button type="submit" style="width:100%;padding:10px;">
+Create Account
+</button>
 
 </form>
+
+
+<!-- ✅ BACK BUTTON -->
+<div style="margin-top:15px;text-align:center;">
+<a href="/login">
+<button style="padding:8px 20px;">
+← Back
+</button>
+</a>
+</div>
+
 
 </div>
 
