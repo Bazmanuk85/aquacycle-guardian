@@ -9,52 +9,26 @@
             margin: 0;
             background: #0b3d5c; /* full blue background */
             color: white;
-        }
-
-        .container {
             text-align: center;
             padding-top: 60px;
         }
 
         .logo img {
             width: 120px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
-
-        main {
-            display: flex;
-            justify-content: center;
-        }
-
-        .content {
-            background: white;
-            color: black;
-            padding: 30px;
-            border-radius: 8px;
-            width: 400px;
-        }
-
     </style>
 
 </head>
 
 <body>
 
-<div class="container">
-
-    <!-- ✅ Logo centered -->
-    <div class="logo">
-        <img src="/static/logo.png">
-    </div>
-
-    <main>
-        <div class="content">
-            {% block content %}
-            {% endblock %}
-        </div>
-    </main>
-
+<div class="logo">
+    <img src="/static/logo.png">
 </div>
+
+{% block content %}
+{% endblock %}
 
 </body>
 </html>
