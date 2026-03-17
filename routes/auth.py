@@ -28,10 +28,7 @@ def send_verification_email(email: str, username: str):
 def register_get(request: Request):
     return templates.TemplateResponse(
         "register.html",
-        {
-            "request": request,
-            "errors": []
-        }
+        {"request": request, "errors": []}
     )
 
 
@@ -61,26 +58,12 @@ def register_post(
     if "@" not in email:
         errors.append("Please enter a valid email address")
 
-    # Password validation (safe handling)
-    try:
-        validation = validate_password(password)
+    # ✅ FIXED PASSWORD VALIDATION
+    password_error = validate_password(password)
+    if password_error:
+        errors.append(password_error)
 
-        if isinstance(validation, tuple):
-            valid, message = validation
-            if not valid:
-                errors.append(message)
-
-        elif isinstance(validation, list):
-            errors.extend(validation)
-
-        elif validation is False:
-            errors.append("Password does not meet requirements")
-
-    except Exception as e:
-        print("Password validation error:", e)
-        errors.append("Password validation failed")
-
-    # If errors exist, return page with messages
+    # Return errors if any
     if errors:
         return templates.TemplateResponse(
             "register.html",
@@ -117,9 +100,7 @@ def register_post(
 def login_get(request: Request):
     return templates.TemplateResponse(
         "login.html",
-        {
-            "request": request
-        }
+        {"request": request}
     )
 
 
@@ -142,16 +123,7 @@ def login_post(
 
     user = db.query(User).filter(User.username == username).first()
 
-    if not user:
-        return templates.TemplateResponse(
-            "login.html",
-            {
-                "request": request,
-                "error": "Invalid username or password"
-            }
-        )
-
-    if not verify_password(password, user.password):
+    if not user or not verify_password(password, user.password):
         return templates.TemplateResponse(
             "login.html",
             {
