@@ -11,7 +11,7 @@ from fastapi.templating import Jinja2Templates
 
 app = FastAPI()
 
-# ✅ IMPORTANT: keep routers EXACTLY as originally intended
+# Keep routers unchanged
 app.include_router(auth.router)
 app.include_router(tanks.router)
 
@@ -29,8 +29,8 @@ def get_db():
 
 
 @app.get("/", response_class=HTMLResponse)
-def root(request: Request):
-    return RedirectResponse(url="/dashboard")
+def root():
+    return RedirectResponse(url="/login", status_code=302)
 
 
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -39,7 +39,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
     username = request.cookies.get("user")
 
     if not username:
-        return RedirectResponse(url="/login")
+        return RedirectResponse(url="/login", status_code=302)
 
     tanks = db.query(Tank).filter(Tank.owner == username).all()
 
@@ -61,7 +61,6 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         status = "unknown"
 
         if latest_test:
-            # SIMPLE SAFE LOGIC (does NOT replace your existing logic)
             if latest_test.ammonia > 0 or latest_test.nitrite > 0:
                 status = "critical"
                 critical += 1
