@@ -1,35 +1,85 @@
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
+{% extends "base.html" %}
 
-router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+{% block content %}
+
+<style>
+
+.login-container{
+display:flex;
+justify-content:center;
+align-items:center;
+height:60vh;
+}
+
+.login-card{
+background:#132c3f;
+padding:40px;
+border-radius:18px;
+width:320px;
+box-shadow:0 0 25px rgba(31,127,209,0.4);
+}
+
+.login-card input{
+width:90%;
+padding:12px;
+margin:10px 0;
+border:none;
+border-radius:12px;
+}
+
+.login-card button{
+width:95%;
+padding:12px;
+margin-top:10px;
+border-radius:12px;
+}
+
+.create-account{
+margin-top:15px;
+font-size:14px;
+}
+
+.create-account a{
+color:#6bb7ff;
+text-decoration:none;
+}
+
+.error{
+color:#ff6b6b;
+margin-top:10px;
+}
+
+</style>
 
 
-@router.get("/")
-def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request})
+<div class="login-container">
 
+<div class="login-card">
 
-@router.post("/login")
-def login(request: Request, username: str = Form(...), password: str = Form(...)):
+<h2>Login</h2>
 
-    if username == "admin" and password == "admin":
+<form method="post" action="/login">
 
-        response = RedirectResponse("/dashboard", status_code=303)
-        response.set_cookie("user", username)
-        return response
+<input type="text" name="username" placeholder="Username" required>
 
-    return templates.TemplateResponse(
-        "login.html",
-        {"request": request, "error": "Invalid login"}
-    )
+<input type="password" name="password" placeholder="Password" required>
 
+<button type="submit">Login</button>
 
-@router.get("/logout")
-def logout():
+</form>
 
-    response = RedirectResponse("/", status_code=303)
-    response.delete_cookie("user")
+{% if error %}
+<div class="error">{{error}}</div>
+{% endif %}
 
-    return response
+<div class="create-account">
+Don't have an account?
+<br>
+<a href="/register">Create one here</a>
+</div>
+
+</div>
+
+</div>
+
+{% endblock %}
