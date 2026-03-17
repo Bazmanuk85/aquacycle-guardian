@@ -2,85 +2,56 @@
 
 {% block content %}
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<h2 style="text-align:center;color:white;margin-top:20px;">Dashboard</h2>
 
-<h2>AquaGuardian Dashboard</h2>
+<div style="display:flex;justify-content:center;gap:40px;color:white;font-size:18px;margin-top:20px;">
 
-<div class="card">
+<div>
+<strong>Healthy</strong><br>
+{{ healthy_count }}
+</div>
 
-<h3>Tank Status</h3>
+<div>
+<strong>Warnings</strong><br>
+{{ warning_count }}
+</div>
 
-<p class="health-good">🟢 Healthy Tanks: {{healthy}}</p>
-
-<p class="health-warning">🟡 Warnings: {{warning}}</p>
-
-<p class="health-bad">🔴 Critical Tanks: {{critical}}</p>
+<div>
+<strong>Critical</strong><br>
+{{ critical_count }}
+</div>
 
 </div>
 
-<br>
 
-<a href="/create-tank">
-<button>Create New Tank</button>
-</a>
+<div style="
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:25px;
+padding:30px;
+">
 
-<br><br>
+{% for tank in tanks %}
 
-{% if tank_data %}
+<div style="
+background:white;
+border-radius:14px;
+padding:20px;
+width:320px;
+box-shadow:0 4px 12px rgba(0,0,0,0.2);
+">
 
-<div style="display:flex;flex-wrap:wrap;gap:30px;justify-content:center;">
+<h3>{{ tank.name }}</h3>
 
-{% for item in tank_data %}
+{{ tank.stats | safe }}
 
-<div class="card" style="width:360px;">
-
-<h2>{{item.tank.name}}</h2>
-
-<p><strong>Type:</strong> {{item.tank.tank_type}}</p>
-<p><strong>Size:</strong> {{item.tank.size_litres}} L</p>
-
-<h4>Health</h4>
-
-{% if item.health >= 80 %}
-<p class="health-good">{{item.health}} / 100</p>
-{% elif item.health >= 50 %}
-<p class="health-warning">{{item.health}} / 100</p>
-{% else %}
-<p class="health-bad">{{item.health}} / 100</p>
-{% endif %}
-
-<h4>Water Change Recommendation</h4>
-
-<p>{{item.recommendation}} % recommended</p>
-
-<h4>Alerts</h4>
-
-{% if item.alerts %}
-
-{% for alert in item.alerts %}
-
-<div>{{alert}}</div>
-
-{% endfor %}
-
-{% else %}
-
-<p>✅ Stable</p>
-
-{% endif %}
-
-<br>
-
-<a href="/tank/{{item.tank.id}}">
-<button>Open Tank</button>
-</a>
+<a href="/tank/{{ tank.id }}">View Tank</a>
 
 </div>
 
 {% endfor %}
 
 </div>
-
-{% endif %}
 
 {% endblock %}
