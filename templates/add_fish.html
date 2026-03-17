@@ -2,6 +2,38 @@
 
 {% block content %}
 
+<style>
+
+.search-box{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:none;
+margin-bottom:10px;
+}
+
+.suggestions{
+max-height:200px;
+overflow-y:auto;
+background:#0b1d2a;
+border:1px solid #2e4b63;
+border-radius:10px;
+text-align:left;
+}
+
+.suggestion{
+padding:8px;
+cursor:pointer;
+border-bottom:1px solid #1f3649;
+}
+
+.suggestion:hover{
+background:#132c3f;
+}
+
+</style>
+
+
 <div class="card">
 
 <a href="/tank/{{tank.id}}">
@@ -13,27 +45,19 @@
 <form method="post">
 
 <label>Fish Species</label>
-<br>
 
-<input 
-type="text" 
+<input
+type="text"
 name="species"
-list="fish-list"
+id="fishSearch"
+class="search-box"
 placeholder="Start typing fish name..."
 required
 >
 
-<datalist id="fish-list">
+<div id="suggestions" class="suggestions"></div>
 
-{% for fish in fish_list %}
-
-<option value="{{fish}}">
-
-{% endfor %}
-
-</datalist>
-
-<br><br>
+<br>
 
 <label>Quantity</label>
 <br>
@@ -46,10 +70,50 @@ required
 
 </form>
 
-<p style="font-size:13px;color:#8aaec6;margin-top:10px;">
-If the species is not listed, simply type the name and it will be added.
-</p>
-
 </div>
+
+
+<script>
+
+const fishList = [
+{% for fish in fish_list %}
+"{{fish}}",
+{% endfor %}
+];
+
+const search = document.getElementById("fishSearch");
+const suggestions = document.getElementById("suggestions");
+
+search.addEventListener("input", function(){
+
+const value = this.value.toLowerCase();
+suggestions.innerHTML = "";
+
+if(value.length === 0){
+return;
+}
+
+const matches = fishList.filter(fish =>
+fish.toLowerCase().includes(value)
+).slice(0,10);
+
+matches.forEach(fish => {
+
+const div = document.createElement("div");
+div.classList.add("suggestion");
+div.innerText = fish;
+
+div.onclick = function(){
+search.value = fish;
+suggestions.innerHTML = "";
+};
+
+suggestions.appendChild(div);
+
+});
+
+});
+
+</script>
 
 {% endblock %}
