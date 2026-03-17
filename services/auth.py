@@ -1,108 +1,26 @@
-from fastapi import APIRouter, Request, Form
-from fastapi.responses import RedirectResponse
-from fastapi.templating import Jinja2Templates
-
-import models
-from database import SessionLocal
-
-from services.auth import hash_password, verify_password, validate_password
-from services.email_service import send_verification_email
-
-import uuid
-
-router = APIRouter()
-
-templates = Jinja2Templates(directory="templates")
+import re
+from passlib.hash import bcrypt
 
 
-@router.get("/")
-def login_page(request: Request):
+def hash_password(password: str):
 
-    return templates.TemplateResponse("login.html", {"request": request})
-
-
-@router.post("/login")
-def login(request: Request, username: str = Form(...), password: str = Form(...)):
-
-    if username == "admin" and password == "admin":
-
-        response = RedirectResponse("/dashboard", status_code=303)
-
-        response.set_cookie("user", username)
-
-        return response
-
-    db = SessionLocal()
-
-    user = db.query(models.User).filter(models.User.username == username).first()
-
-    if not user:
-
-        return templates.TemplateResponse(
-            "login.html",
-            {"request": request, "error": "Invalid login"}
-        )
-
-    if not verify_password(password, user.password):
-
-        return templates.TemplateResponse(
-            "login.html",
-            {"request": request, "error": "Invalid login"}
-        )
-
-    if not user.email_verified:
-
-        return templates.TemplateResponse(
-            "login.html",
-            {"request": request, "error": "Email not verified"}
-        )
-
-    response = RedirectResponse("/dashboard", status_code=303)
-
-    response.set_cookie("user", username)
-
-    return response
+    return bcrypt.hash(password)
 
 
-@router.get("/register")
-def register_page(request: Request):
+def verify_password(password: str, hashed: str):
 
-    return templates.TemplateResponse("register.html", {"request": request})
+    return bcrypt.verify(password, hashed)
 
 
-@router.post("/register")
-def register(
-    request: Request,
-    email: str = Form(...),
-    username: str = Form(...),
-    password: str = Form(...)
-):
+def validate_password(password: str):
 
-    db = SessionLocal()
+    if len(password) < 8 or len(password) > 16:
+        return "Password must be 8–16 characters"
 
-    error = validate_password(password)
+    if not re.search(r"[A-Z]", password):
+        return "Password must contain at least one uppercase letter"
 
-    if error:
+    if not re.search(r"[!@#$%^&*()_+\-=\[\]{};':\"\\|,.<>/?]", password):
+        return "Password must contain at least one special character"
 
-        return templates.TemplateResponse(
-            "register.html",
-            {"request": request, "error": error}
-        )
-
-    hashed = hash_password(password)
-
-    user = models.User(
-        email=email,
-        username=username,
-        password=hashed
-    )
-
-    db.add(user)
-
-    db.commit()
-
-    token = str(uuid.uuid4())
-
-    send_verification_email(email, token)
-
-    return RedirectResponse("/", status_code=303)
+    return None
