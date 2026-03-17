@@ -7,67 +7,54 @@
         body {
             font-family: Arial, sans-serif;
             margin: 0;
-            background: #f4f6f8;
-        }
-
-        header {
-            background: #0b3d5c;
+            background: #0b3d5c; /* full blue background */
             color: white;
-            padding: 15px 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .container {
+            text-align: center;
+            padding-top: 60px;
         }
 
-        /* restore original logo size */
         .logo img {
-            height: 40px;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 20px;
-            font-weight: bold;
+            width: 120px;
+            margin-bottom: 20px;
         }
 
         main {
-            padding: 30px;
+            display: flex;
+            justify-content: center;
         }
+
+        .content {
+            background: white;
+            color: black;
+            padding: 30px;
+            border-radius: 8px;
+            width: 400px;
+        }
+
     </style>
 
 </head>
 
 <body>
 
-<header>
+<div class="container">
 
-<div class="logo">
-    <img src="/static/logo.png">
-    <h2>AquaGuardian</h2>
+    <!-- ✅ Logo centered -->
+    <div class="logo">
+        <img src="/static/logo.png">
+    </div>
+
+    <main>
+        <div class="content">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
 </div>
-
-<nav>
-{% if request.cookies.get("user") %}
-    <a href="/dashboard">Dashboard</a>
-    <a href="/logout">Logout</a>
-{% endif %}
-</nav>
-
-</header>
-
-<main>
-
-{% block content %}
-{% endblock %}
-
-</main>
 
 </body>
 </html>
